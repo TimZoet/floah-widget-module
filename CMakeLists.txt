@@ -1,4 +1,4 @@
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../floah")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../floah-layout")
 include(floahVersionString)
 
 set(NAME floah-widget)
@@ -11,7 +11,7 @@ set(HEADERS
 )
 
 set(SOURCES
-    
+    ${SRC_DIR}/output.cpp
 )
 
 set(DEPS_PUBLIC
