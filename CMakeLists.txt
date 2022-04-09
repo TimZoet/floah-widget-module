@@ -7,15 +7,39 @@ set(INCLUDE_DIR "include/floah-widget")
 set(SRC_DIR "src")
 
 set(HEADERS
-    
+    ${INCLUDE_DIR}/panel.h
+
+    ${INCLUDE_DIR}/data/bool_data_source.h
+    ${INCLUDE_DIR}/data/data_source.h
+    ${INCLUDE_DIR}/data/list_data_source.h
+    ${INCLUDE_DIR}/data/value_data_source.h
+
+    ${INCLUDE_DIR}/widgets/button.h
+    ${INCLUDE_DIR}/widgets/checkbox.h
+    ${INCLUDE_DIR}/widgets/dropdown.h
+    ${INCLUDE_DIR}/widgets/radio_button.h
+    ${INCLUDE_DIR}/widgets/widget.h
 )
 
 set(SOURCES
-    ${SRC_DIR}/output.cpp
+    ${SRC_DIR}/panel.cpp
+
+    ${SRC_DIR}/data/bool_data_source.cpp
+    ${SRC_DIR}/data/data_source.cpp
+    ${SRC_DIR}/data/list_data_source.cpp
+    ${SRC_DIR}/data/value_data_source.cpp
+
+    ${SRC_DIR}/widgets/button.cpp
+    ${SRC_DIR}/widgets/checkbox.cpp
+    ${SRC_DIR}/widgets/dropdown.cpp
+    ${SRC_DIR}/widgets/radio_button.cpp
+    ${SRC_DIR}/widgets/widget.cpp
 )
 
 set(DEPS_PUBLIC
-
+    floah-layout
+    floah-put
+    floah-viz
 )
 
 set(DEPS_PRIVATE
