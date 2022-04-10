@@ -47,4 +47,15 @@ namespace floah
 
         panelElement = &element;
     }
+
+    ////////////////////////////////////////////////////////////////
+    // Generate.
+    ////////////////////////////////////////////////////////////////
+
+    void Widget::generateLayout(Size size, Size offset)
+    {
+        layout->getSize()   = std::move(size);
+        layout->getOffset() = std::move(offset);
+        blocks              = layout->generate();
+    }
 }  // namespace floah

@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////
 
 #include <memory>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////
 // Module includes.
@@ -85,6 +86,12 @@ namespace floah
          */
         void setPanelLayoutElement(Element& element);
 
+        ////////////////////////////////////////////////////////////////
+        // Generate.
+        ////////////////////////////////////////////////////////////////
+
+        void generateLayout(Size size, Size offset);
+
     protected:
         ////////////////////////////////////////////////////////////////
         // Member variables.
@@ -104,5 +111,7 @@ namespace floah
          * \brief Element in the panel layout this widget is attached to.
          */
         Element* panelElement = nullptr;
+
+        std::vector<Block> blocks;
     };
 }  // namespace floah

@@ -28,10 +28,16 @@ namespace floah
 
     const std::string& Checkbox::getLabel() const noexcept { return label; }
 
+    bool Checkbox::hasDataSource() const noexcept { return dataSource != nullptr; }
+
+    IBoolDataSource* Checkbox::getDataSource() const noexcept { return dataSource; }
+
     ////////////////////////////////////////////////////////////////
     // Setters.
     ////////////////////////////////////////////////////////////////
 
     void Checkbox::setLabel(std::string l) { label = std::move(l); }
+
+    void Checkbox::setDataSource(IBoolDataSource* source) { dataSource = source; }
 
 }  // namespace floah

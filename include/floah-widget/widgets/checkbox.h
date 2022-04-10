@@ -10,6 +10,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "floah-data/i_bool_data_source.h"
 #include "floah-layout/element.h"
 #include "floah-layout/elements/horizontal_flow.h"
 
@@ -44,13 +45,19 @@ namespace floah
         // Getters.
         ////////////////////////////////////////////////////////////////
 
-        [[nodiscard]] const std::string& getLabel() const noexcept;
+        [[nodiscard]] virtual const std::string& getLabel() const noexcept;
+
+        [[nodiscard]] bool hasDataSource() const noexcept;
+
+        [[nodiscard]] virtual IBoolDataSource* getDataSource() const noexcept;
 
         ////////////////////////////////////////////////////////////////
         // Setters.
         ////////////////////////////////////////////////////////////////
 
-        void setLabel(std::string l);
+        virtual void setLabel(std::string l);
+
+        virtual void setDataSource(IBoolDataSource* source);
 
     protected:
         ////////////////////////////////////////////////////////////////
@@ -67,5 +74,7 @@ namespace floah
 
             Element* labelElement = nullptr;
         } elements;
+
+        IBoolDataSource* dataSource = nullptr;
     };
 }  // namespace floah

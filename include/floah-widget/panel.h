@@ -78,6 +78,12 @@ namespace floah
             return ref;
         }
 
+        ////////////////////////////////////////////////////////////////
+        // Generate.
+        ////////////////////////////////////////////////////////////////
+
+        void generateLayout();
+
     private:
         void addWidgetImpl(WidgetPtr widget);
 
@@ -94,5 +100,7 @@ namespace floah
          * \brief List of widgets in this panel.
          */
         std::vector<WidgetPtr> widgets;
+
+        std::vector<Block> blocks;
     };
 }  // namespace floah
