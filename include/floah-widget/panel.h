@@ -12,6 +12,8 @@
 ////////////////////////////////////////////////////////////////
 
 #include "floah-layout/layout.h"
+#include "sol/mesh/fwd.h"
+#include "sol/scenegraph/fwd.h"
 
 ////////////////////////////////////////////////////////////////
 // Current target includes.
@@ -82,7 +84,17 @@ namespace floah
         // Generate.
         ////////////////////////////////////////////////////////////////
 
+        /**
+         * \brief Generate the layout.
+         */
         void generateLayout();
+
+        /**
+         * \brief Generate the scenegraph.
+         * \param meshManager MeshManager.
+         * \param rootNode Node to append all new nodes to.
+         */
+        void generateScenegraph(sol::MeshManager& meshManager, sol::Node& rootNode);
 
     private:
         void addWidgetImpl(WidgetPtr widget);
@@ -101,6 +113,9 @@ namespace floah
          */
         std::vector<WidgetPtr> widgets;
 
+        /**
+         * \brief Layout blocks.
+         */
         std::vector<Block> blocks;
     };
 }  // namespace floah

@@ -12,6 +12,8 @@
 ////////////////////////////////////////////////////////////////
 
 #include "floah-layout/layout.h"
+#include "sol/mesh/fwd.h"
+#include "sol/scenegraph/fwd.h"
 
 namespace floah
 {
@@ -90,7 +92,9 @@ namespace floah
         // Generate.
         ////////////////////////////////////////////////////////////////
 
-        void generateLayout(Size size, Size offset);
+        virtual void generateLayout(Size size, Size offset);
+
+        virtual void generateScenegraph(sol::MeshManager& meshManager, sol::Node& parentNode) = 0;
 
     protected:
         ////////////////////////////////////////////////////////////////

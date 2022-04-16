@@ -6,6 +6,12 @@
 
 #include <ranges>
 
+////////////////////////////////////////////////////////////////
+// Module includes.
+////////////////////////////////////////////////////////////////
+
+#include "sol/scenegraph/scenegraph.h"
+
 namespace floah
 {
     ////////////////////////////////////////////////////////////////
@@ -49,7 +55,7 @@ namespace floah
         for (auto& w : widgets)
         {
             // Look for element in panel layout widget is attached to.
-            const auto it = std::ranges::find_if(blocks, [&](const Block block) {
+            const auto it = std::ranges::find_if(blocks, [&](const Block& block) {
                 auto* elem = w->getPanelLayoutElement();
                 if (!elem) return false;
                 return elem->getId() == block.id;
@@ -62,4 +68,10 @@ namespace floah
             // TODO: Clear layout otherwise?
         }
     }
+
+    void Panel::generateScenegraph(sol::MeshManager& meshManager, sol::Node& rootNode)
+    {
+        for (const auto& w : widgets) w->generateScenegraph(meshManager, rootNode);
+    }
+
 }  // namespace floah

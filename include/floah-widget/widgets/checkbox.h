@@ -59,6 +59,14 @@ namespace floah
 
         virtual void setDataSource(IBoolDataSource* source);
 
+        ////////////////////////////////////////////////////////////////
+        // Generate.
+        ////////////////////////////////////////////////////////////////
+
+        void generateLayout(Size size, Size offset) override;
+
+        void generateScenegraph(sol::MeshManager& meshManager, sol::Node& parentNode) override;
+
     protected:
         ////////////////////////////////////////////////////////////////
         // Member variables.
@@ -68,12 +76,23 @@ namespace floah
 
         struct
         {
-            HorizontalFlow* rootElement = nullptr;
+            HorizontalFlow* root = nullptr;
 
-            Element* boxElement = nullptr;
+            Element* box = nullptr;
 
-            Element* labelElement = nullptr;
+            Block* boxBlock = nullptr;
+
+            Element* label = nullptr;
+
+            Block* labelBlock = nullptr;
         } elements;
+
+        struct
+        {
+            sol::FlatMesh* box = nullptr;
+
+            sol::FlatMesh* checkmark = nullptr;
+        } meshes;
 
         IBoolDataSource* dataSource = nullptr;
     };
