@@ -94,7 +94,9 @@ namespace floah
 
         virtual void generateLayout(Size size, Size offset);
 
-        virtual void generateScenegraph(sol::MeshManager& meshManager, sol::Node& parentNode) = 0;
+        virtual void generateGeometry(sol::MeshManager& meshManager) = 0;
+
+        virtual void generateScenegraph(sol::Node& parentNode) = 0;
 
     protected:
         ////////////////////////////////////////////////////////////////

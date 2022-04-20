@@ -10,7 +10,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
-#include "sol/scenegraph/scenegraph.h"
+#include "floah-layout/utils/floah_error.h"
 
 namespace floah
 {
@@ -30,9 +30,21 @@ namespace floah
 
     const Layout& Panel::getLayout() const noexcept { return *layout; }
 
+    sol::MeshManager* Panel::getMeshManager() noexcept { return meshManager; }
+
+    const sol::MeshManager* Panel::getMeshManager() const noexcept { return meshManager; }
+
+    sol::Node* Panel::getRootNode() noexcept { return rootNode; }
+
+    const sol::Node* Panel::getRootNode() const noexcept { return rootNode; }
+
     ////////////////////////////////////////////////////////////////
     // Setters.
     ////////////////////////////////////////////////////////////////
+
+    void Panel::setMeshManager(sol::MeshManager& manager) noexcept { meshManager = &manager; }
+
+    void Panel::setRootNode(sol::Node& node) noexcept { rootNode = &node; }
 
     ////////////////////////////////////////////////////////////////
     // Widgets.
@@ -48,10 +60,13 @@ namespace floah
     // Generate.
     ////////////////////////////////////////////////////////////////
 
-    void Panel::generateLayout()
+    void Panel::generatePanelLayout()
     {
         blocks = layout->generate();
+    }
 
+    void Panel::generateWidgetLayouts()
+    {
         for (auto& w : widgets)
         {
             // Look for element in panel layout widget is attached to.
@@ -69,9 +84,18 @@ namespace floah
         }
     }
 
-    void Panel::generateScenegraph(sol::MeshManager& meshManager, sol::Node& rootNode)
+    void Panel::generateGeometry() const
     {
-        for (const auto& w : widgets) w->generateScenegraph(meshManager, rootNode);
+        if (!meshManager) throw FloahError("Cannot generate geometry: no mesh manager assigned to panel.");
+
+        for (const auto& w : widgets) w->generateGeometry(*meshManager);
+    }
+
+    void Panel::generateScenegraph() const
+    {
+        if (!rootNode) throw FloahError("Cannot generate scenegraph: no root node assigned to panel.");
+
+        for (const auto& w : widgets) w->generateScenegraph(*rootNode);
     }
 
 }  // namespace floah

@@ -65,7 +65,9 @@ namespace floah
 
         void generateLayout(Size size, Size offset) override;
 
-        void generateScenegraph(sol::MeshManager& meshManager, sol::Node& parentNode) override;
+        void generateGeometry(sol::MeshManager& meshManager) override;
+
+        void generateScenegraph(sol::Node& parentNode) override;
 
     protected:
         ////////////////////////////////////////////////////////////////
@@ -89,10 +91,17 @@ namespace floah
 
         struct
         {
-            sol::FlatMesh* box = nullptr;
+            sol::IMesh* box = nullptr;
 
-            sol::FlatMesh* checkmark = nullptr;
+            sol::IMesh* checkmark = nullptr;
         } meshes;
+
+        struct
+        {
+            sol::MeshNode* box = nullptr;
+
+            sol::MeshNode* checkmark = nullptr;
+        } nodes;
 
         IBoolDataSource* dataSource = nullptr;
     };

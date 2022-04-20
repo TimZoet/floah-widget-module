@@ -10,6 +10,8 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "floah-layout/utils/floah_error.h"
+#include "floah-viz/generators/circle_generator.h"
 #include "floah-viz/generators/rectangle_generator.h"
 #include "sol/mesh/flat_mesh.h"
 #include "sol/mesh/mesh_manager.h"
@@ -36,7 +38,12 @@ namespace floah
         elements.label->getSize().setHeight(Length(1.0f));
     }
 
-    Checkbox::~Checkbox() noexcept = default;
+    Checkbox::~Checkbox() noexcept
+    {
+        // TODO: Destroy any allocated meshes.
+        // if (meshes.box) meshManager.destroyMesh(meshes.box->getUuid());
+        // if (meshes.checkmark) meshManager.destroyMesh(meshes.checkmark->getUuid());
+    }
 
     ////////////////////////////////////////////////////////////////
     // Getters.
@@ -71,23 +78,31 @@ namespace floah
         elements.labelBlock = &*it;
     }
 
-    void Checkbox::generateScenegraph(sol::MeshManager& meshManager, sol::Node& parentNode)
+    void Checkbox::generateGeometry(sol::MeshManager& meshManager)
     {
-        // Destroy old meshes.
-        if (meshes.box) meshManager.destroyMesh(meshes.box->getUuid());
-        if (meshes.checkmark) meshManager.destroyMesh(meshes.checkmark->getUuid());
-
+        if (!elements.boxBlock) throw FloahError("Cannot generate geometry. Layout was not generated yet.");
+        // TODO: Update meshes if they already exist.
         RectangleGenerator gen;
 
-        gen.lower        = math::float2(elements.boxBlock->bounds.x0, elements.boxBlock->bounds.y0);
-        gen.upper        = math::float2(elements.boxBlock->bounds.x1, elements.boxBlock->bounds.y1);
-        meshes.box       = &gen.generate(meshManager);
+        gen.lower    = math::float2(elements.boxBlock->bounds.x0, elements.boxBlock->bounds.y0);
+        gen.upper    = math::float2(elements.boxBlock->bounds.x1, elements.boxBlock->bounds.y1);
+        gen.fillMode = RectangleGenerator::FillMode::Fill;
+        gen.margin   = Length(0.1f);
+        meshes.box   = &gen.generate(meshManager);
 
         gen.lower        = math::float2(elements.labelBlock->bounds.x0, elements.labelBlock->bounds.y0);
         gen.upper        = math::float2(elements.labelBlock->bounds.x1, elements.labelBlock->bounds.y1);
+        gen.fillMode     = RectangleGenerator::FillMode::Outline;
+        gen.margin       = Length(0.1f);
         meshes.checkmark = &gen.generate(meshManager);
+    }
 
-        parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
-        parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
+    void Checkbox::generateScenegraph(sol::Node& parentNode)
+    {
+        if (!meshes.box) throw FloahError("Cannot generate scenegraph. Geometry was not generated yet.");
+
+        // TODO: Update nodes if they already exist.
+        nodes.box       = &parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
+        nodes.checkmark = &parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
     }
 }  // namespace floah

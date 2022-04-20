@@ -58,9 +58,21 @@ namespace floah
          */
         [[nodiscard]] const Layout& getLayout() const noexcept;
 
+        [[nodiscard]] sol::MeshManager* getMeshManager() noexcept;
+
+        [[nodiscard]] const sol::MeshManager* getMeshManager() const noexcept;
+
+        [[nodiscard]] sol::Node* getRootNode() noexcept;
+
+        [[nodiscard]] const sol::Node* getRootNode() const noexcept;
+
         ////////////////////////////////////////////////////////////////
         // Setters.
         ////////////////////////////////////////////////////////////////
+
+        void setMeshManager(sol::MeshManager& manager) noexcept;
+
+        void setRootNode(sol::Node& node) noexcept;
 
         ////////////////////////////////////////////////////////////////
         // Widgets.
@@ -85,16 +97,24 @@ namespace floah
         ////////////////////////////////////////////////////////////////
 
         /**
-         * \brief Generate the layout.
+         * \brief Generate the panel layout.
          */
-        void generateLayout();
+        void generatePanelLayout();
+
+        /**
+         * \brief Generate the widget layouts.
+         */
+        void generateWidgetLayouts();
+
+        /**
+         * \brief Generate the geometry.
+         */
+        void generateGeometry() const;
 
         /**
          * \brief Generate the scenegraph.
-         * \param meshManager MeshManager.
-         * \param rootNode Node to append all new nodes to.
          */
-        void generateScenegraph(sol::MeshManager& meshManager, sol::Node& rootNode);
+        void generateScenegraph() const;
 
     private:
         void addWidgetImpl(WidgetPtr widget);
@@ -117,5 +137,15 @@ namespace floah
          * \brief Layout blocks.
          */
         std::vector<Block> blocks;
+
+        /**
+         * \brief MeshManager
+         */
+        sol::MeshManager* meshManager = nullptr;
+
+        /**
+         * \brief Node to append all new nodes to.
+         */
+        sol::Node* rootNode = nullptr;
     };
 }  // namespace floah
