@@ -105,4 +105,17 @@ namespace floah
         nodes.box       = &parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
         nodes.checkmark = &parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
     }
+
+    ////////////////////////////////////////////////////////////////
+    // Input.
+    ////////////////////////////////////////////////////////////////
+
+    bool Checkbox::intersect(const int32_t x, const int32_t y) const
+    {
+        const auto offset = math::int2(layout->getOffset().getWidth().get(), layout->getOffset().getHeight().get());
+        const auto size   = math::int2(layout->getSize().getWidth().get(), layout->getSize().getHeight().get());
+        const math::AABB aabb(offset, offset + size);
+        return inside(math::int2(x, y), aabb);
+    }
+
 }  // namespace floah

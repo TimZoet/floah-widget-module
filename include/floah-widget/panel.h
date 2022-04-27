@@ -12,6 +12,8 @@
 ////////////////////////////////////////////////////////////////
 
 #include "floah-layout/layout.h"
+#include "floah-put/input_context.h"
+#include "floah-put/input_element.h"
 #include "sol/mesh/fwd.h"
 #include "sol/scenegraph/fwd.h"
 
@@ -23,7 +25,7 @@
 
 namespace floah
 {
-    class Panel
+    class Panel : public InputElement
     {
     public:
         ////////////////////////////////////////////////////////////////
@@ -36,7 +38,7 @@ namespace floah
 
         Panel(Panel&&) noexcept = delete;
 
-        ~Panel() noexcept;
+        ~Panel() noexcept override;
 
         Panel& operator=(const Panel&) = delete;
 
@@ -58,6 +60,13 @@ namespace floah
          */
         [[nodiscard]] const Layout& getLayout() const noexcept;
 
+        // TODO: Remove many of these getters and setters and instead require them on construction?
+        // Would greatly limit the number of accidental errors due to uninited values, and simplify
+        // error handling.
+        [[nodiscard]] InputContext* getInputContext() noexcept;
+
+        [[nodiscard]] InputContext* getInputContext() const noexcept;
+
         [[nodiscard]] sol::MeshManager* getMeshManager() noexcept;
 
         [[nodiscard]] const sol::MeshManager* getMeshManager() const noexcept;
@@ -69,6 +78,8 @@ namespace floah
         ////////////////////////////////////////////////////////////////
         // Setters.
         ////////////////////////////////////////////////////////////////
+
+        void setInputContext(InputContext& context) noexcept;
 
         void setMeshManager(sol::MeshManager& manager) noexcept;
 
@@ -116,6 +127,12 @@ namespace floah
          */
         void generateScenegraph() const;
 
+        ////////////////////////////////////////////////////////////////
+        // Input.
+        ////////////////////////////////////////////////////////////////
+
+        [[nodiscard]] bool intersect(int32_t x, int32_t y) const override;
+
     private:
         void addWidgetImpl(WidgetPtr widget);
 
@@ -139,7 +156,12 @@ namespace floah
         std::vector<Block> blocks;
 
         /**
-         * \brief MeshManager
+         * \brief Input context.
+         */
+        InputContext* inputContext = nullptr;
+
+        /**
+         * \brief MeshManager.
          */
         sol::MeshManager* meshManager = nullptr;
 

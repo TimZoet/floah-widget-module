@@ -12,6 +12,7 @@
 ////////////////////////////////////////////////////////////////
 
 #include "floah-layout/layout.h"
+#include "floah-put/input_element.h"
 #include "sol/mesh/fwd.h"
 #include "sol/scenegraph/fwd.h"
 
@@ -23,7 +24,7 @@ namespace floah
     using PanelPtr  = std::unique_ptr<Panel>;
     using WidgetPtr = std::unique_ptr<Widget>;
 
-    class Widget
+    class Widget : public InputElement
     {
         friend class Panel;
 
@@ -38,7 +39,7 @@ namespace floah
 
         Widget(Widget&&) noexcept = delete;
 
-        virtual ~Widget() noexcept;
+        ~Widget() noexcept override;
 
         Widget& operator=(const Widget&) = delete;
 

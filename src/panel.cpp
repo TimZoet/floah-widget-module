@@ -11,6 +11,7 @@
 ////////////////////////////////////////////////////////////////
 
 #include "floah-layout/utils/floah_error.h"
+#include "math/include_all.h"
 
 namespace floah
 {
@@ -18,7 +19,7 @@ namespace floah
     // Constructors.
     ////////////////////////////////////////////////////////////////
 
-    Panel::Panel() : layout(std::make_unique<Layout>()) {}
+    Panel::Panel() : InputElement(), layout(std::make_unique<Layout>()) {}
 
     Panel::~Panel() noexcept = default;
 
@@ -29,6 +30,10 @@ namespace floah
     Layout& Panel::getLayout() noexcept { return *layout; }
 
     const Layout& Panel::getLayout() const noexcept { return *layout; }
+
+    InputContext* Panel::getInputContext() noexcept { return inputContext; }
+
+    InputContext* Panel::getInputContext() const noexcept { return inputContext; }
 
     sol::MeshManager* Panel::getMeshManager() noexcept { return meshManager; }
 
@@ -42,6 +47,8 @@ namespace floah
     // Setters.
     ////////////////////////////////////////////////////////////////
 
+    void Panel::setInputContext(InputContext& context) noexcept { inputContext = &context; }
+
     void Panel::setMeshManager(sol::MeshManager& manager) noexcept { meshManager = &manager; }
 
     void Panel::setRootNode(sol::Node& node) noexcept { rootNode = &node; }
@@ -54,16 +61,14 @@ namespace floah
     {
         auto& ref = *widgets.emplace_back(std::move(widget));
         ref.panel = this;
+        inputContext->addElement(ref);
     }
 
     ////////////////////////////////////////////////////////////////
     // Generate.
     ////////////////////////////////////////////////////////////////
 
-    void Panel::generatePanelLayout()
-    {
-        blocks = layout->generate();
-    }
+    void Panel::generatePanelLayout() { blocks = layout->generate(); }
 
     void Panel::generateWidgetLayouts()
     {
@@ -96,6 +101,18 @@ namespace floah
         if (!rootNode) throw FloahError("Cannot generate scenegraph: no root node assigned to panel.");
 
         for (const auto& w : widgets) w->generateScenegraph(*rootNode);
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // Input.
+    ////////////////////////////////////////////////////////////////
+
+    bool Panel::intersect(const int32_t x, const int32_t y) const
+    {
+        const auto offset = math::int2(layout->getOffset().getWidth().get(), layout->getOffset().getHeight().get());
+        const auto size   = math::int2(layout->getSize().getWidth().get(), layout->getSize().getHeight().get());
+        const math::AABB aabb(offset, size);
+        return inside(math::int2(x, y), aabb);
     }
 
 }  // namespace floah
