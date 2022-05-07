@@ -71,6 +71,10 @@ namespace floah
 
         [[nodiscard]] const sol::MeshManager* getMeshManager() const noexcept;
 
+        [[nodiscard]] FontMap* getFontMap() noexcept;
+
+        [[nodiscard]] const FontMap* getFontMap() const noexcept;
+
         [[nodiscard]] sol::Node* getRootNode() noexcept;
 
         [[nodiscard]] const sol::Node* getRootNode() const noexcept;
@@ -82,6 +86,8 @@ namespace floah
         void setInputContext(InputContext& context) noexcept;
 
         void setMeshManager(sol::MeshManager& manager) noexcept;
+
+        void setFontMap(FontMap& map) noexcept;
 
         void setRootNode(sol::Node& node) noexcept;
 
@@ -164,6 +170,11 @@ namespace floah
          * \brief MeshManager.
          */
         sol::MeshManager* meshManager = nullptr;
+
+        /**
+         * \brief FontMap.
+         */
+        FontMap* fontMap = nullptr;
 
         /**
          * \brief Node to append all new nodes to.

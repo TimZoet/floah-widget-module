@@ -39,6 +39,10 @@ namespace floah
 
     const sol::MeshManager* Panel::getMeshManager() const noexcept { return meshManager; }
 
+    FontMap* Panel::getFontMap() noexcept { return fontMap; }
+
+    const FontMap* Panel::getFontMap() const noexcept { return fontMap; }
+
     sol::Node* Panel::getRootNode() noexcept { return rootNode; }
 
     const sol::Node* Panel::getRootNode() const noexcept { return rootNode; }
@@ -50,6 +54,8 @@ namespace floah
     void Panel::setInputContext(InputContext& context) noexcept { inputContext = &context; }
 
     void Panel::setMeshManager(sol::MeshManager& manager) noexcept { meshManager = &manager; }
+
+    void Panel::setFontMap(FontMap& map) noexcept { fontMap = &map; }
 
     void Panel::setRootNode(sol::Node& node) noexcept { rootNode = &node; }
 
@@ -92,8 +98,10 @@ namespace floah
     void Panel::generateGeometry() const
     {
         if (!meshManager) throw FloahError("Cannot generate geometry: no mesh manager assigned to panel.");
+        if (!fontMap) throw FloahError("Cannot generate geometry: no font map assigned to panel.");
 
-        for (const auto& w : widgets) w->generateGeometry(*meshManager);
+
+        for (const auto& w : widgets) w->generateGeometry(*meshManager, *fontMap);
     }
 
     void Panel::generateScenegraph() const

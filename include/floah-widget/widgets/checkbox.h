@@ -65,7 +65,7 @@ namespace floah
 
         void generateLayout(Size size, Size offset) override;
 
-        void generateGeometry(sol::MeshManager& meshManager) override;
+        void generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap) override;
 
         void generateScenegraph(sol::Node& parentNode) override;
 
@@ -84,29 +84,25 @@ namespace floah
 
         struct
         {
-            HorizontalFlow* root = nullptr;
-
-            Element* box = nullptr;
-
-            Block* boxBlock = nullptr;
-
-            Element* label = nullptr;
-
-            Block* labelBlock = nullptr;
+            HorizontalFlow* root       = nullptr;
+            Element*        box        = nullptr;
+            Element*        label      = nullptr;
+            Block*          boxBlock   = nullptr;
+            Block*          labelBlock = nullptr;
         } elements;
 
         struct
         {
-            sol::IMesh* box = nullptr;
-
+            sol::IMesh* box       = nullptr;
             sol::IMesh* checkmark = nullptr;
+            sol::IMesh* label     = nullptr;
         } meshes;
 
         struct
         {
-            sol::MeshNode* box = nullptr;
-
+            sol::MeshNode* box       = nullptr;
             sol::MeshNode* checkmark = nullptr;
+            sol::MeshNode* label     = nullptr;
         } nodes;
 
         IBoolDataSource* dataSource = nullptr;
