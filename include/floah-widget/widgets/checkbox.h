@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////
 
 #include "floah-data/i_bool_data_source.h"
-#include "floah-layout/element.h"
+#include "floah-layout/layout_element.h"
 #include "floah-layout/elements/horizontal_flow.h"
 
 ////////////////////////////////////////////////////////////////
@@ -85,8 +85,8 @@ namespace floah
         struct
         {
             HorizontalFlow* root       = nullptr;
-            Element*        box        = nullptr;
-            Element*        label      = nullptr;
+            LayoutElement*  box        = nullptr;
+            LayoutElement*  label      = nullptr;
             Block*          boxBlock   = nullptr;
             Block*          labelBlock = nullptr;
         } elements;

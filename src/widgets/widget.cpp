@@ -38,13 +38,13 @@ namespace floah
 
     const Layout& Widget::getLayout() const noexcept { return *layout; }
 
-    Element* Widget::getPanelLayoutElement() const noexcept { return panelElement; }
+    LayoutElement* Widget::getPanelLayoutElement() const noexcept { return panelElement; }
 
     ////////////////////////////////////////////////////////////////
     // Setters.
     ////////////////////////////////////////////////////////////////
 
-    void Widget::setPanelLayoutElement(Element& element)
+    void Widget::setPanelLayoutElement(LayoutElement& element)
     {
         if (element.getLayout() != &panel->getLayout())
             throw FloahError("Cannot attach widget to element. It is not from the panel layout.");

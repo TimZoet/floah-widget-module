@@ -28,8 +28,8 @@ namespace floah
     Checkbox::Checkbox() : Widget()
     {
         elements.root  = &layout->setRoot(std::make_unique<HorizontalFlow>());
-        elements.box   = &elements.root->append(std::make_unique<Element>());
-        elements.label = &elements.root->append(std::make_unique<Element>());
+        elements.box   = &elements.root->append(std::make_unique<LayoutElement>());
+        elements.label = &elements.root->append(std::make_unique<LayoutElement>());
 
 
         elements.root->getSize().setWidth(Length(1.0f));

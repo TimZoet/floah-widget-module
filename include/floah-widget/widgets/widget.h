@@ -91,7 +91,7 @@ namespace floah
          * \brief Get the element in the panel layout this widget is attached to.
          * \return Element.
          */
-        [[nodiscard]] Element* getPanelLayoutElement() const noexcept;
+        [[nodiscard]] LayoutElement* getPanelLayoutElement() const noexcept;
 
         ////////////////////////////////////////////////////////////////
         // Setters.
@@ -101,7 +101,7 @@ namespace floah
          * \brief Set the element in the panel layout this widget is attached to.
          * \param element Element.
          */
-        void setPanelLayoutElement(Element& element);
+        void setPanelLayoutElement(LayoutElement& element);
 
         ////////////////////////////////////////////////////////////////
         // Generate.
@@ -144,7 +144,7 @@ namespace floah
         /**
          * \brief Element in the panel layout this widget is attached to.
          */
-        Element* panelElement = nullptr;
+        LayoutElement* panelElement = nullptr;
 
         std::vector<Block> blocks;
     };
