@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////
@@ -21,6 +22,7 @@
 // Current target includes.
 ////////////////////////////////////////////////////////////////
 
+#include "floah-widget/layer.h"
 #include "floah-widget/widgets/widget.h"
 
 namespace floah
@@ -32,7 +34,9 @@ namespace floah
         // Constructors.
         ////////////////////////////////////////////////////////////////
 
-        Panel();
+        Panel() = delete;
+
+        Panel(InputContext& context);
 
         Panel(const Panel&) = delete;
 
@@ -60,36 +64,37 @@ namespace floah
          */
         [[nodiscard]] const Layout& getLayout() const noexcept;
 
-        // TODO: Remove many of these getters and setters and instead require them on construction?
-        // Would greatly limit the number of accidental errors due to uninited values, and simplify
-        // error handling.
-        [[nodiscard]] InputContext* getInputContext() noexcept;
+        /**
+         * \brief Get the input context.
+         * \return Input context.
+         */
+        [[nodiscard]] InputContext& getInputContext() noexcept;
 
-        [[nodiscard]] InputContext* getInputContext() const noexcept;
-
-        [[nodiscard]] sol::MeshManager* getMeshManager() noexcept;
-
-        [[nodiscard]] const sol::MeshManager* getMeshManager() const noexcept;
-
-        [[nodiscard]] FontMap* getFontMap() noexcept;
-
-        [[nodiscard]] const FontMap* getFontMap() const noexcept;
-
-        [[nodiscard]] sol::Node* getRootNode() noexcept;
-
-        [[nodiscard]] const sol::Node* getRootNode() const noexcept;
+        /**
+         * \brief Get the input context.
+         * \return Input context.
+         */
+        [[nodiscard]] const InputContext& getInputContext() const noexcept;
 
         ////////////////////////////////////////////////////////////////
-        // Setters.
+        // Layers.
         ////////////////////////////////////////////////////////////////
 
-        void setInputContext(InputContext& context) noexcept;
+        /**
+         * \brief Create a new layer.
+         * \param layerName Name of layer.
+         * \param depth Depth of layer.
+         * \return Layer.
+         */
+        Layer& createLayer(std::string layerName, int32_t depth);
 
-        void setMeshManager(sol::MeshManager& manager) noexcept;
+        [[nodiscard]] Layer& getLayer(const std::string& layerName) const;
 
-        void setFontMap(FontMap& map) noexcept;
-
-        void setRootNode(sol::Node& node) noexcept;
+        /**
+         * \brief Destroy a layer. Automatically removes all widgets in this layer from it.
+         * \param layerName Name of layer.
+         */
+        void destroyLayer(const std::string& layerName);
 
         ////////////////////////////////////////////////////////////////
         // Widgets.
@@ -105,7 +110,22 @@ namespace floah
         T& addWidget(std::unique_ptr<T> widget)
         {
             T& ref = *widget;
-            addWidgetImpl(std::move(widget));
+            addWidgetImpl(std::move(widget), nullptr);
+            return ref;
+        }
+
+        /**
+         * \brief Add a widget to this panel.
+         * \tparam T Widget type.
+         * \param widget Widget.
+         * \param layer Optional layer to add widget to.
+         * \return Widget.
+         */
+        template<std::derived_from<Widget> T>
+        T& addWidget(std::unique_ptr<T> widget, Layer& layer)
+        {
+            T& ref = *widget;
+            addWidgetImpl(std::move(widget), &layer);
             return ref;
         }
 
@@ -126,21 +146,24 @@ namespace floah
         /**
          * \brief Generate the geometry.
          */
-        void generateGeometry() const;
+        void generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap) const;
 
         /**
          * \brief Generate the scenegraph.
          */
-        void generateScenegraph() const;
+        void generateScenegraph(sol::Node& rootNode) const;
 
         ////////////////////////////////////////////////////////////////
         // Input.
         ////////////////////////////////////////////////////////////////
 
-        [[nodiscard]] bool intersect(int32_t x, int32_t y) const override;
+        // TODO: Support sorting of panels by implementing this method (and whatever else is needed for that).
+        // [[nodiscard]] int32_t getInputLayer() const noexcept override;
+
+        [[nodiscard]] bool intersect(int32_t x, int32_t y) const noexcept override;
 
     private:
-        void addWidgetImpl(WidgetPtr widget);
+        void addWidgetImpl(WidgetPtr widget, Layer* layer);
 
         ////////////////////////////////////////////////////////////////
         // Member variables.
@@ -150,6 +173,11 @@ namespace floah
          * \brief Panel layout.
          */
         LayoutPtr layout;
+
+        /**
+         * \brief List of layers in this panel.
+         */
+        std::unordered_map<std::string, std::unique_ptr<Layer>> layers;
 
         /**
          * \brief List of widgets in this panel.
@@ -165,20 +193,5 @@ namespace floah
          * \brief Input context.
          */
         InputContext* inputContext = nullptr;
-
-        /**
-         * \brief MeshManager.
-         */
-        sol::MeshManager* meshManager = nullptr;
-
-        /**
-         * \brief FontMap.
-         */
-        FontMap* fontMap = nullptr;
-
-        /**
-         * \brief Node to append all new nodes to.
-         */
-        sol::Node* rootNode = nullptr;
     };
 }  // namespace floah

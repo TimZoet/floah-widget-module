@@ -4,6 +4,7 @@
 // Standard includes.
 ////////////////////////////////////////////////////////////////
 
+#include <format>
 #include <ranges>
 
 ////////////////////////////////////////////////////////////////
@@ -19,7 +20,10 @@ namespace floah
     // Constructors.
     ////////////////////////////////////////////////////////////////
 
-    Panel::Panel() : InputElement(), layout(std::make_unique<Layout>()) {}
+    Panel::Panel(InputContext& context) : InputElement(), layout(std::make_unique<Layout>()), inputContext(&context)
+    {
+        inputContext->addElement(*this);
+    }
 
     Panel::~Panel() noexcept = default;
 
@@ -31,42 +35,53 @@ namespace floah
 
     const Layout& Panel::getLayout() const noexcept { return *layout; }
 
-    InputContext* Panel::getInputContext() noexcept { return inputContext; }
+    InputContext& Panel::getInputContext() noexcept { return *inputContext; }
 
-    InputContext* Panel::getInputContext() const noexcept { return inputContext; }
-
-    sol::MeshManager* Panel::getMeshManager() noexcept { return meshManager; }
-
-    const sol::MeshManager* Panel::getMeshManager() const noexcept { return meshManager; }
-
-    FontMap* Panel::getFontMap() noexcept { return fontMap; }
-
-    const FontMap* Panel::getFontMap() const noexcept { return fontMap; }
-
-    sol::Node* Panel::getRootNode() noexcept { return rootNode; }
-
-    const sol::Node* Panel::getRootNode() const noexcept { return rootNode; }
+    const InputContext& Panel::getInputContext() const noexcept { return *inputContext; }
 
     ////////////////////////////////////////////////////////////////
-    // Setters.
+    // Layers.
     ////////////////////////////////////////////////////////////////
 
-    void Panel::setInputContext(InputContext& context) noexcept { inputContext = &context; }
+    Layer& Panel::createLayer(std::string layerName, const int32_t depth)
+    {
+        if (layers.contains(layerName))
+            throw FloahError(std::format("Cannot create layer {}. A layer with this name already exists.", layerName));
 
-    void Panel::setMeshManager(sol::MeshManager& manager) noexcept { meshManager = &manager; }
+        return *layers.try_emplace(std::move(layerName), std::make_unique<Layer>(depth)).first->second;
+    }
 
-    void Panel::setFontMap(FontMap& map) noexcept { fontMap = &map; }
+    Layer& Panel::getLayer(const std::string& layerName) const
+    {
+        const auto it = layers.find(layerName);
+        if (it == layers.end())
+            throw FloahError(std::format("Cannot get layer {}. A layer with this name does not exist.", layerName));
 
-    void Panel::setRootNode(sol::Node& node) noexcept { rootNode = &node; }
+        return *it->second;
+    }
+
+    void Panel::destroyLayer(const std::string& layerName)
+    {
+        const auto it = layers.find(layerName);
+        if (it == layers.end())
+            throw FloahError(std::format("Cannot destroy layer {}. A layer with this name does not exist.", layerName));
+
+        layers.erase(it);
+
+        // Remove widgets from layer.
+        for (const auto& w : widgets)
+            if (w->layer == it->second.get()) w->layer = nullptr;
+    }
 
     ////////////////////////////////////////////////////////////////
     // Widgets.
     ////////////////////////////////////////////////////////////////
 
-    void Panel::addWidgetImpl(WidgetPtr widget)
+    void Panel::addWidgetImpl(WidgetPtr widget, Layer* layer)
     {
         auto& ref = *widgets.emplace_back(std::move(widget));
         ref.panel = this;
+        ref.layer = layer;
         inputContext->addElement(ref);
     }
 
@@ -95,27 +110,21 @@ namespace floah
         }
     }
 
-    void Panel::generateGeometry() const
+    void Panel::generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap) const
     {
-        if (!meshManager) throw FloahError("Cannot generate geometry: no mesh manager assigned to panel.");
-        if (!fontMap) throw FloahError("Cannot generate geometry: no font map assigned to panel.");
-
-
-        for (const auto& w : widgets) w->generateGeometry(*meshManager, *fontMap);
+        for (const auto& w : widgets) w->generateGeometry(meshManager, fontMap);
     }
 
-    void Panel::generateScenegraph() const
+    void Panel::generateScenegraph(sol::Node& rootNode) const
     {
-        if (!rootNode) throw FloahError("Cannot generate scenegraph: no root node assigned to panel.");
-
-        for (const auto& w : widgets) w->generateScenegraph(*rootNode);
+        for (const auto& w : widgets) w->generateScenegraph(rootNode);
     }
 
     ////////////////////////////////////////////////////////////////
     // Input.
     ////////////////////////////////////////////////////////////////
 
-    bool Panel::intersect(const int32_t x, const int32_t y) const
+    bool Panel::intersect(const int32_t x, const int32_t y) const noexcept
     {
         const auto offset = math::int2(layout->getOffset().getWidth().get(), layout->getOffset().getHeight().get());
         const auto size   = math::int2(layout->getSize().getWidth().get(), layout->getSize().getHeight().get());

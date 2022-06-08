@@ -118,7 +118,7 @@ namespace floah
     // Input.
     ////////////////////////////////////////////////////////////////
 
-    bool Checkbox::intersect(const int32_t x, const int32_t y) const
+    bool Checkbox::intersect(const int32_t x, const int32_t y) const noexcept
     {
         const auto offset = math::int2(layout->getOffset().getWidth().get(), layout->getOffset().getHeight().get());
         const auto size   = math::int2(layout->getSize().getWidth().get(), layout->getSize().getHeight().get());

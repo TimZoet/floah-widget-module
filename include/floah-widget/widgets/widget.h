@@ -19,6 +19,7 @@
 
 namespace floah
 {
+    struct Layer;
     class Panel;
     class Widget;
 
@@ -63,6 +64,18 @@ namespace floah
         [[nodiscard]] const Panel& getPanel() const noexcept;
 
         /**
+         * \brief Get the optional layer this widget is in.
+         * \return Layer.
+         */
+        [[nodiscard]] Layer* getLayer() noexcept;
+
+        /**
+         * \brief Get the optional layer this widget is in.
+         * \return Layer.
+         */
+        [[nodiscard]] const Layer* getLayer() const noexcept;
+
+        /**
          * \brief Get the widget layout.
          * \return Widget layout.
          */
@@ -100,6 +113,14 @@ namespace floah
 
         virtual void generateScenegraph(sol::Node& parentNode) = 0;
 
+        ////////////////////////////////////////////////////////////////
+        // Input.
+        ////////////////////////////////////////////////////////////////
+
+        [[nodiscard]] const InputElement* getInputParent() const noexcept override;
+
+        [[nodiscard]] int32_t getInputLayer() const noexcept override;
+
     protected:
         ////////////////////////////////////////////////////////////////
         // Member variables.
@@ -109,6 +130,11 @@ namespace floah
          * \brief Panel this widget is in.
          */
         Panel* panel = nullptr;
+
+        /**
+         * \brief Optional layer this widget is in.
+         */
+        Layer* layer = nullptr;
 
         /**
          * \brief Widget layout.

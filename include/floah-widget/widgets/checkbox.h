@@ -73,7 +73,7 @@ namespace floah
         // Input.
         ////////////////////////////////////////////////////////////////
 
-        [[nodiscard]] bool intersect(int32_t x, int32_t y) const override;
+        [[nodiscard]] bool intersect(int32_t x, int32_t y) const noexcept override;
 
     protected:
         ////////////////////////////////////////////////////////////////

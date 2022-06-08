@@ -30,6 +30,10 @@ namespace floah
 
     const Panel& Widget::getPanel() const noexcept { return *panel; }
 
+    Layer* Widget::getLayer() noexcept { return layer; }
+
+    const Layer* Widget::getLayer() const noexcept { return layer; }
+
     Layout& Widget::getLayout() noexcept { return *layout; }
 
     const Layout& Widget::getLayout() const noexcept { return *layout; }
@@ -58,4 +62,13 @@ namespace floah
         layout->getOffset() = std::move(offset);
         blocks              = layout->generate();
     }
+
+    ////////////////////////////////////////////////////////////////
+    // Input.
+    ////////////////////////////////////////////////////////////////
+
+    const InputElement* Widget::getInputParent() const noexcept { return panel; }
+
+    int32_t Widget::getInputLayer() const noexcept { return layer ? layer->depth : 0; }
+
 }  // namespace floah

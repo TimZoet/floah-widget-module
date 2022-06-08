@@ -7,6 +7,7 @@ set(INCLUDE_DIR "include/floah-widget")
 set(SRC_DIR "src")
 
 set(HEADERS
+    ${INCLUDE_DIR}/layer.h
     ${INCLUDE_DIR}/panel.h
 
     ${INCLUDE_DIR}/widgets/button.h
@@ -17,6 +18,7 @@ set(HEADERS
 )
 
 set(SOURCES
+    ${SRC_DIR}/layer.cpp
     ${SRC_DIR}/panel.cpp
 
     ${SRC_DIR}/widgets/button.cpp
