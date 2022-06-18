@@ -11,7 +11,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
-#include "floah-layout/utils/floah_error.h"
+#include "floah-common/floah_error.h"
 #include "math/include_all.h"
 
 namespace floah

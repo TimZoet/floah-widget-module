@@ -10,7 +10,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
-#include "floah-layout/utils/floah_error.h"
+#include "floah-common/floah_error.h"
 #include "floah-viz/generators/circle_generator.h"
 #include "floah-viz/generators/rectangle_generator.h"
 #include "floah-viz/generators/text_generator.h"

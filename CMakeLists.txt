@@ -29,6 +29,7 @@ set(SOURCES
 )
 
 set(DEPS_PUBLIC
+    floah-common
     floah-data
     floah-layout
     floah-put
