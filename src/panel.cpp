@@ -45,6 +45,7 @@ namespace floah
 
     Layer& Panel::createLayer(std::string layerName, const int32_t depth)
     {
+        if (layerName.empty()) throw FloahError("Cannot create a layer with an empty name.");
         if (layers.contains(layerName))
             throw FloahError(std::format("Cannot create layer {}. A layer with this name already exists.", layerName));
 
@@ -76,6 +77,16 @@ namespace floah
     ////////////////////////////////////////////////////////////////
     // Widgets.
     ////////////////////////////////////////////////////////////////
+
+    void Panel::destroyWidget(Widget& widget)
+    {
+        if (&widget.getPanel() != this) throw FloahError("Cannot destroy widget. It is not part of this panel.");
+
+        inputContext->removeElement(widget);
+
+        const auto it = std::ranges::find_if(widgets, [&widget](const auto& w) { return w.get() == &widget; });
+        widgets.erase(it);
+    }
 
     void Panel::addWidgetImpl(WidgetPtr widget, Layer* layer)
     {

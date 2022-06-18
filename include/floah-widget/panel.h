@@ -36,7 +36,7 @@ namespace floah
 
         Panel() = delete;
 
-        Panel(InputContext& context);
+        explicit Panel(InputContext& context);
 
         Panel(const Panel&) = delete;
 
@@ -88,6 +88,11 @@ namespace floah
          */
         Layer& createLayer(std::string layerName, int32_t depth);
 
+        /**
+         * \brief Retrieve a layer by name.
+         * \param layerName Layer name.
+         * \return Layer.
+         */
         [[nodiscard]] Layer& getLayer(const std::string& layerName) const;
 
         /**
@@ -128,6 +133,12 @@ namespace floah
             addWidgetImpl(std::move(widget), &layer);
             return ref;
         }
+
+        /**
+         * \brief Destroy a widget, completely removing it from this panel.
+         * \param widget Widget.
+         */
+        void destroyWidget(Widget& widget);
 
         ////////////////////////////////////////////////////////////////
         // Generate.

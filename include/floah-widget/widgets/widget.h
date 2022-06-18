@@ -47,6 +47,11 @@ namespace floah
 
         Widget& operator=(Widget&&) noexcept = delete;
 
+        /**
+         * \brief Destroy this widget (internally calls panel->destroyWidget(*this)).
+         */
+        void destroy();
+
         ////////////////////////////////////////////////////////////////
         // Getters.
         ////////////////////////////////////////////////////////////////
@@ -141,6 +146,8 @@ namespace floah
          */
         LayoutPtr layout;
 
+        // TODO: It is arguably a bit weird that we have a whole uuid system and then still use the pointer here.
+        // We know that the panel layout is persistent, so it is guaranteed that this pointer will remain valid, but still...
         /**
          * \brief Element in the panel layout this widget is attached to.
          */
