@@ -14,6 +14,7 @@
 #include "floah-layout/layout.h"
 #include "floah-put/input_element.h"
 #include "floah-viz/font_map.h"
+#include "floah-viz/stylesheet.h"
 #include "sol/mesh/fwd.h"
 #include "sol/scenegraph/fwd.h"
 
@@ -98,6 +99,18 @@ namespace floah
          */
         [[nodiscard]] LayoutElement* getPanelLayoutElement() const noexcept;
 
+        /**
+         * \brief Get the widget stylesheet.
+         * \return Stylesheet or nullptr.
+         */
+        [[nodiscard]] Stylesheet* getStylesheet() noexcept;
+
+        /**
+         * \brief Get the widget stylesheet.
+         * \return Stylesheet or nullptr.
+         */
+        [[nodiscard]] const Stylesheet* getStylesheet() const noexcept;
+
         ////////////////////////////////////////////////////////////////
         // Setters.
         ////////////////////////////////////////////////////////////////
@@ -107,6 +120,12 @@ namespace floah
          * \param element Element.
          */
         void setPanelLayoutElement(LayoutElement& element);
+
+        /**
+         * \brief Set the widget stylesheet.
+         * \param sheet Stylesheet or nullptr.
+         */
+        void setStylesheet(Stylesheet* sheet) noexcept;
 
         ////////////////////////////////////////////////////////////////
         // Generate.
@@ -154,5 +173,10 @@ namespace floah
         LayoutElement* panelElement = nullptr;
 
         std::vector<Block> blocks;
+
+        /**
+         * \brief Widget stylesheet.
+         */
+        Stylesheet* stylesheet = nullptr;
     };
 }  // namespace floah

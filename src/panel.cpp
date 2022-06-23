@@ -39,6 +39,16 @@ namespace floah
 
     const InputContext& Panel::getInputContext() const noexcept { return *inputContext; }
 
+    Stylesheet* Panel::getStylesheet() noexcept { return stylesheet; }
+
+    const Stylesheet* Panel::getStylesheet() const noexcept { return stylesheet; }
+
+    ////////////////////////////////////////////////////////////////
+    // Setters.
+    ////////////////////////////////////////////////////////////////
+
+    void Panel::setStylesheet(Stylesheet* sheet) noexcept { stylesheet = sheet; }
+
     ////////////////////////////////////////////////////////////////
     // Layers.
     ////////////////////////////////////////////////////////////////

@@ -42,6 +42,10 @@ namespace floah
 
     LayoutElement* Widget::getPanelLayoutElement() const noexcept { return panelElement; }
 
+    Stylesheet* Widget::getStylesheet() noexcept { return stylesheet; }
+
+    const Stylesheet* Widget::getStylesheet() const noexcept { return stylesheet; }
+
     ////////////////////////////////////////////////////////////////
     // Setters.
     ////////////////////////////////////////////////////////////////
@@ -53,6 +57,8 @@ namespace floah
 
         panelElement = &element;
     }
+
+    void Widget::setStylesheet(Stylesheet* sheet) noexcept { stylesheet = sheet; }
 
     ////////////////////////////////////////////////////////////////
     // Generate.

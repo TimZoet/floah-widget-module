@@ -76,6 +76,28 @@ namespace floah
          */
         [[nodiscard]] const InputContext& getInputContext() const noexcept;
 
+        /**
+         * \brief Get the panel stylesheet.
+         * \return Stylesheet or nullptr.
+         */
+        [[nodiscard]] Stylesheet* getStylesheet() noexcept;
+
+        /**
+         * \brief Get the panel stylesheet.
+         * \return Stylesheet or nullptr.
+         */
+        [[nodiscard]] const Stylesheet* getStylesheet() const noexcept;
+
+        ////////////////////////////////////////////////////////////////
+        // Setters.
+        ////////////////////////////////////////////////////////////////
+
+        /**
+         * \brief Set the panel stylesheet.
+         * \param sheet Stylesheet or nullptr.
+         */
+        void setStylesheet(Stylesheet* sheet) noexcept;
+
         ////////////////////////////////////////////////////////////////
         // Layers.
         ////////////////////////////////////////////////////////////////
@@ -204,5 +226,10 @@ namespace floah
          * \brief Input context.
          */
         InputContext* inputContext = nullptr;
+
+        /**
+         * \brief Panel stylesheet.
+         */
+        Stylesheet* stylesheet = nullptr;
     };
 }  // namespace floah
