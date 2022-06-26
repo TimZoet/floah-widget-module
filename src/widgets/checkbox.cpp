@@ -31,20 +31,7 @@ namespace floah
     // Constructors.
     ////////////////////////////////////////////////////////////////
 
-    Checkbox::Checkbox() : Widget()
-    {
-        elements.root  = &layout->setRoot(std::make_unique<HorizontalFlow>());
-        elements.box   = &elements.root->append(std::make_unique<LayoutElement>());
-        elements.label = &elements.root->append(std::make_unique<LayoutElement>());
-
-
-        elements.root->getSize().setWidth(Length(1.0f));
-        elements.root->getSize().setHeight(Length(1.0f));
-        elements.box->getSize().setWidth(Length(0.2f));
-        elements.box->getSize().setHeight(Length(1.0f));
-        elements.label->getSize().setWidth(Length(0.8f));
-        elements.label->getSize().setHeight(Length(1.0f));
-    }
+    Checkbox::Checkbox() : Widget() {}
 
     Checkbox::~Checkbox() noexcept
     {
@@ -77,7 +64,27 @@ namespace floah
 
     void Checkbox::generateLayout(Size size, Size offset)
     {
-        Widget::generateLayout(std::move(size), std::move(offset));
+        // Create layout elements if they do not exist.
+        if (!elements.root)
+        {
+            elements.root  = &layout->setRoot(std::make_unique<HorizontalFlow>());
+            elements.box   = &elements.root->append(std::make_unique<LayoutElement>());
+            elements.label = &elements.root->append(std::make_unique<LayoutElement>());
+        }
+
+        // Style layout elements.
+        elements.root->getSize().setWidth(Length(1.0f));
+        elements.root->getSize().setHeight(Length(1.0f));
+
+        elements.box->getSize().setWidth(getBoxWidth());
+        elements.box->getSize().setHeight(getBoxHeight());
+        elements.box->getOuterMargin() = getBoxMargin();
+
+        elements.label->getSize().setWidth(getLabelWidth());
+        elements.label->getSize().setHeight(getLabelHeight());
+        elements.label->getOuterMargin() = getLabelMargin();
+
+        Widget::generateLayout(size, offset);
 
         // Get blocks for relevant elements.
         auto it = std::ranges::find_if(blocks, [&](const auto& block) { return block.id == elements.box->getId(); });
@@ -94,11 +101,21 @@ namespace floah
         // TODO: Update meshes if they already exist.
         {
             RectangleGenerator gen;
-            gen.upper    = math::float2(elements.boxBlock->bounds.width(), elements.boxBlock->bounds.height());
-            gen.fillMode = RectangleGenerator::FillMode::Fill;
-            gen.margin   = getMargin();
+            gen.lower =
+              -0.5f * math::float2(math::min(elements.boxBlock->bounds.width(), elements.boxBlock->bounds.height()));
+            gen.upper    = -gen.lower;
+            gen.fillMode = RectangleGenerator::FillMode::Outline;
+            gen.margin   = Length(2);
             gen.color    = getColor();
             meshes.box   = &gen.generate(params);
+        }
+
+        {
+            CircleGenerator gen;
+            gen.fillMode = CircleGenerator::FillMode::Fill;
+            gen.radius   = 0.5f * static_cast<float>(
+                                  math::min(elements.boxBlock->bounds.width(), elements.boxBlock->bounds.height()));
+            meshes.checkmark = &gen.generate(params);
         }
 
         {
@@ -114,13 +131,20 @@ namespace floah
 
         // TODO: Update nodes if they already exist.
 
-        auto& widgetNode = generator.createWidgetNode(
-          math::float3(elements.boxBlock->bounds.x0, elements.boxBlock->bounds.y0, getInputLayer()));
+        // TODO: If math::float3 were directly constructible from
+        // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
+        // this could be a lot prettier:
+        // math::float3(elements.boxBlock->bounds.center(), getInputLayer()));
+        auto& boxNode = generator.createWidgetNode(
+          math::float3(elements.boxBlock->bounds.center()[0], elements.boxBlock->bounds.center()[1], getInputLayer()));
+        auto& checkmarkNode = generator.createWidgetNode(
+          math::float3(elements.boxBlock->bounds.center()[0], elements.boxBlock->bounds.center()[1], getInputLayer()));
         auto& labelNode = generator.createTextNode(
           math::float3(elements.labelBlock->bounds.x0, elements.labelBlock->bounds.y0, getInputLayer()));
 
-        nodes.box   = &widgetNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
-        nodes.label = &labelNode.addChild(std::make_unique<sol::MeshNode>(*meshes.label));
+        nodes.box       = &boxNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
+        nodes.checkmark = &checkmarkNode.addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
+        nodes.label     = &labelNode.addChild(std::make_unique<sol::MeshNode>(*meshes.label));
     }
 
     ////////////////////////////////////////////////////////////////
@@ -139,12 +163,64 @@ namespace floah
     // Stylesheet getters.
     ////////////////////////////////////////////////////////////////
 
-    Length Checkbox::getMargin() const noexcept
+    Length Checkbox::getBoxHeight() const noexcept
     {
-        Length margin;
-        if (stylesheet) return stylesheet->get("margin", margin);
-        if (panel->getStylesheet()) return panel->getStylesheet()->get("margin", margin);
-        return margin;
+        const auto height = getStylesheetProperty<Length>(checkbox_box_height);
+        if (height) return *height;
+
+        const auto size = getStylesheetProperty<Size>(checkbox_box_size);
+        if (size) return size->getHeight();
+
+        return checkbox_box_height_default;
+    }
+
+    Margin Checkbox::getBoxMargin() const noexcept
+    {
+        const auto margin = getStylesheetProperty<Margin>(checkbox_box_margin);
+        if (margin) return *margin;
+
+        return checkbox_box_margin_default;
+    }
+
+    Length Checkbox::getBoxWidth() const noexcept
+    {
+        const auto width = getStylesheetProperty<Length>(checkbox_box_width);
+        if (width) return *width;
+
+        const auto size = getStylesheetProperty<Size>(checkbox_box_size);
+        if (size) return size->getWidth();
+
+        return checkbox_box_width_default;
+    }
+
+    Length Checkbox::getLabelHeight() const noexcept
+    {
+        const auto height = getStylesheetProperty<Length>(checkbox_label_height);
+        if (height) return *height;
+
+        const auto size = getStylesheetProperty<Size>(checkbox_label_size);
+        if (size) return size->getHeight();
+
+        return checkbox_label_height_default;
+    }
+
+    Margin Checkbox::getLabelMargin() const noexcept
+    {
+        const auto margin = getStylesheetProperty<Margin>(checkbox_label_margin);
+        if (margin) return *margin;
+
+        return checkbox_label_margin_default;
+    }
+
+    Length Checkbox::getLabelWidth() const noexcept
+    {
+        const auto width = getStylesheetProperty<Length>(checkbox_label_width);
+        if (width) return *width;
+
+        const auto size = getStylesheetProperty<Size>(checkbox_label_size);
+        if (size) return size->getWidth();
+
+        return checkbox_label_width_default;
     }
 
     math::float4 Checkbox::getColor() const noexcept

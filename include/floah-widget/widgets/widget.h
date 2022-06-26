@@ -116,6 +116,18 @@ namespace floah
          */
         [[nodiscard]] const Stylesheet* getStylesheet() const noexcept;
 
+        /**
+         * \brief Get the panel stylesheet.
+         * \return Stylesheet or nullptr.
+         */
+        [[nodiscard]] Stylesheet* getPanelStylesheet() noexcept;
+
+        /**
+         * \brief Get the panel stylesheet.
+         * \return Stylesheet or nullptr.
+         */
+        [[nodiscard]] const Stylesheet* getPanelStylesheet() const noexcept;
+
         ////////////////////////////////////////////////////////////////
         // Setters.
         ////////////////////////////////////////////////////////////////
@@ -151,6 +163,30 @@ namespace floah
         [[nodiscard]] int32_t getInputLayer() const noexcept override;
 
     protected:
+        ////////////////////////////////////////////////////////////////
+        // Stylesheet getter.
+        ////////////////////////////////////////////////////////////////
+
+        template<typename T, typename N>
+        [[nodiscard]] std::optional<T> getStylesheetProperty(N name) const
+        {
+            // Try to retrieve property from widget stylesheet.
+            if (stylesheet)
+            {
+                const auto opt = stylesheet->get<T>(name);
+                if (opt) return *opt;
+            }
+
+            // Try to retrieve property from panel stylesheet.
+            if (getPanelStylesheet())
+            {
+                const auto opt = getPanelStylesheet()->get<T>(name);
+                if (opt) return *opt;
+            }
+
+            return {};
+        }
+
         ////////////////////////////////////////////////////////////////
         // Member variables.
         ////////////////////////////////////////////////////////////////

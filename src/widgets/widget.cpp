@@ -46,6 +46,10 @@ namespace floah
 
     const Stylesheet* Widget::getStylesheet() const noexcept { return stylesheet; }
 
+    Stylesheet* Widget::getPanelStylesheet() noexcept { return panel->getStylesheet(); }
+
+    const Stylesheet* Widget::getPanelStylesheet() const noexcept { return panel->getStylesheet(); }
+
     ////////////////////////////////////////////////////////////////
     // Setters.
     ////////////////////////////////////////////////////////////////
