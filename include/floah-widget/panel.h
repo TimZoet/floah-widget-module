@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////
 
 #include "floah-widget/layer.h"
+#include "floah-widget/generators/scenegraph_generator.h"
 #include "floah-widget/widgets/widget.h"
 
 namespace floah
@@ -184,7 +185,7 @@ namespace floah
         /**
          * \brief Generate the scenegraph.
          */
-        void generateScenegraph(sol::Node& rootNode) const;
+        void generateScenegraph(IScenegraphGenerator& generator) const;
 
         ////////////////////////////////////////////////////////////////
         // Input.

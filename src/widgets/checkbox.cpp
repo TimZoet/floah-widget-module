@@ -19,6 +19,12 @@
 #include "sol/scenegraph/node.h"
 #include "sol/scenegraph/drawable/mesh_node.h"
 
+////////////////////////////////////////////////////////////////
+// Current target includes.
+////////////////////////////////////////////////////////////////
+
+#include "floah-widget/panel.h"
+
 namespace floah
 {
     ////////////////////////////////////////////////////////////////
@@ -88,30 +94,33 @@ namespace floah
         // TODO: Update meshes if they already exist.
         {
             RectangleGenerator gen;
-
-            gen.lower    = math::float2(elements.boxBlock->bounds.x0, elements.boxBlock->bounds.y0);
-            gen.upper    = math::float2(elements.boxBlock->bounds.x1, elements.boxBlock->bounds.y1);
+            gen.upper    = math::float2(elements.boxBlock->bounds.width(), elements.boxBlock->bounds.height());
             gen.fillMode = RectangleGenerator::FillMode::Fill;
-            gen.margin   = Length(0.1f);
+            gen.margin   = getMargin();
+            gen.color    = getColor();
             meshes.box   = &gen.generate(params);
         }
 
         {
             TextGenerator gen;
             gen.text     = label;
-            gen.position = math::float2(elements.labelBlock->bounds.x0, elements.labelBlock->bounds.y0);
             meshes.label = &gen.generate(params);
         }
     }
 
-    void Checkbox::generateScenegraph(sol::Node& parentNode)
+    void Checkbox::generateScenegraph(IScenegraphGenerator& generator)
     {
         if (!meshes.box) throw FloahError("Cannot generate scenegraph. Geometry was not generated yet.");
 
         // TODO: Update nodes if they already exist.
-        nodes.box = &parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
-        //nodes.checkmark = &parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
-        nodes.label = &parentNode.addChild(std::make_unique<sol::MeshNode>(*meshes.label));
+
+        auto& widgetNode = generator.createWidgetNode(
+          math::float3(elements.boxBlock->bounds.x0, elements.boxBlock->bounds.y0, getInputLayer()));
+        auto& labelNode = generator.createTextNode(
+          math::float3(elements.labelBlock->bounds.x0, elements.labelBlock->bounds.y0, getInputLayer()));
+
+        nodes.box   = &widgetNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
+        nodes.label = &labelNode.addChild(std::make_unique<sol::MeshNode>(*meshes.label));
     }
 
     ////////////////////////////////////////////////////////////////
@@ -126,4 +135,23 @@ namespace floah
         return inside(math::int2(x, y), aabb);
     }
 
+    ////////////////////////////////////////////////////////////////
+    // Stylesheet getters.
+    ////////////////////////////////////////////////////////////////
+
+    Length Checkbox::getMargin() const noexcept
+    {
+        Length margin;
+        if (stylesheet) return stylesheet->get("margin", margin);
+        if (panel->getStylesheet()) return panel->getStylesheet()->get("margin", margin);
+        return margin;
+    }
+
+    math::float4 Checkbox::getColor() const noexcept
+    {
+        math::float4 color(1, 1, 1, 1);
+        if (stylesheet) return stylesheet->get("color", color);
+        if (panel->getStylesheet()) return panel->getStylesheet()->get("color", color);
+        return color;
+    }
 }  // namespace floah

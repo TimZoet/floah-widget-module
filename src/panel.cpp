@@ -136,9 +136,9 @@ namespace floah
         for (const auto& w : widgets) w->generateGeometry(meshManager, fontMap);
     }
 
-    void Panel::generateScenegraph(sol::Node& rootNode) const
+    void Panel::generateScenegraph(IScenegraphGenerator& generator) const
     {
-        for (const auto& w : widgets) w->generateScenegraph(rootNode);
+        for (const auto& w : widgets) w->generateScenegraph(generator);
     }
 
     ////////////////////////////////////////////////////////////////

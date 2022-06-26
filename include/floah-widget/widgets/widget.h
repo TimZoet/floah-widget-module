@@ -16,7 +16,12 @@
 #include "floah-viz/font_map.h"
 #include "floah-viz/stylesheet.h"
 #include "sol/mesh/fwd.h"
-#include "sol/scenegraph/fwd.h"
+
+////////////////////////////////////////////////////////////////
+// Current target includes.
+////////////////////////////////////////////////////////////////
+
+#include "floah-widget/generators/scenegraph_generator.h"
 
 namespace floah
 {
@@ -135,7 +140,7 @@ namespace floah
 
         virtual void generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap) = 0;
 
-        virtual void generateScenegraph(sol::Node& parentNode) = 0;
+        virtual void generateScenegraph(IScenegraphGenerator& generator) = 0;
 
         ////////////////////////////////////////////////////////////////
         // Input.

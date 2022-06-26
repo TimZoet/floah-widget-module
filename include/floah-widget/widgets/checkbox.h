@@ -67,7 +67,7 @@ namespace floah
 
         void generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap) override;
 
-        void generateScenegraph(sol::Node& parentNode) override;
+        void generateScenegraph(IScenegraphGenerator& generator) override;
 
         ////////////////////////////////////////////////////////////////
         // Input.
@@ -76,6 +76,14 @@ namespace floah
         [[nodiscard]] bool intersect(int32_t x, int32_t y) const noexcept override;
 
     protected:
+        ////////////////////////////////////////////////////////////////
+        // Stylesheet getters.
+        ////////////////////////////////////////////////////////////////
+
+        [[nodiscard]] Length getMargin() const noexcept;
+
+        [[nodiscard]] math::float4 getColor() const noexcept;
+
         ////////////////////////////////////////////////////////////////
         // Member variables.
         ////////////////////////////////////////////////////////////////
