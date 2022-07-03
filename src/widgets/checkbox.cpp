@@ -10,6 +10,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "common/enum_classes.h"
 #include "floah-common/floah_error.h"
 #include "floah-viz/generators/circle_generator.h"
 #include "floah-viz/generators/rectangle_generator.h"
@@ -23,6 +24,7 @@
 // Current target includes.
 ////////////////////////////////////////////////////////////////
 
+#include "floah-widget/node_masks.h"
 #include "floah-widget/panel.h"
 
 namespace floah
@@ -123,28 +125,43 @@ namespace floah
             gen.text     = label;
             meshes.label = &gen.generate(params);
         }
+
+        staleData = staleData & ~StaleData::Geometry;
     }
 
     void Checkbox::generateScenegraph(IScenegraphGenerator& generator)
     {
         if (!meshes.box) throw FloahError("Cannot generate scenegraph. Geometry was not generated yet.");
 
-        // TODO: Update nodes if they already exist.
 
-        // TODO: If math::float3 were directly constructible from
-        // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
-        // this could be a lot prettier:
-        // math::float3(elements.boxBlock->bounds.center(), getInputLayer()));
-        auto& boxNode = generator.createWidgetNode(
-          math::float3(elements.boxBlock->bounds.center()[0], elements.boxBlock->bounds.center()[1], getInputLayer()));
-        auto& checkmarkNode = generator.createWidgetNode(
-          math::float3(elements.boxBlock->bounds.center()[0], elements.boxBlock->bounds.center()[1], getInputLayer()));
-        auto& labelNode = generator.createTextNode(
-          math::float3(elements.labelBlock->bounds.x0, elements.labelBlock->bounds.y0, getInputLayer()));
+        if (!nodes.box)
+        {
+            // TODO: If math::float3 were directly constructible from
+            // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
+            // this could be a lot prettier:
+            nodes.box       = &generator.createWidgetNode(math::float3(
+              elements.boxBlock->bounds.center()[0], elements.boxBlock->bounds.center()[1], getInputLayer()));
+            nodes.checkmark = &generator.createWidgetNode(math::float3(
+              elements.boxBlock->bounds.center()[0], elements.boxBlock->bounds.center()[1], getInputLayer()));
+            nodes.label     = &generator.createTextNode(
+              math::float3(elements.labelBlock->bounds.x0, elements.labelBlock->bounds.y0, getInputLayer()));
 
-        nodes.box       = &boxNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
-        nodes.checkmark = &checkmarkNode.addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
-        nodes.label     = &labelNode.addChild(std::make_unique<sol::MeshNode>(*meshes.label));
+            nodes.box->addChild(std::make_unique<sol::MeshNode>(*meshes.box));
+            nodes.checkmark->addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
+            nodes.label->addChild(std::make_unique<sol::MeshNode>(*meshes.label));
+        }
+        else
+        {
+            // TODO: Update nodes if they already exist.
+        }
+
+        // Set visibility of checkmark.
+        if (dataSource && dataSource->get())
+            nodes.checkmark->setTypeMask(0);
+        else
+            nodes.checkmark->setTypeMask(static_cast<uint64_t>(NodeMasks::Disabled));
+
+        staleData = staleData & ~StaleData::Scenegraph;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -153,10 +170,21 @@ namespace floah
 
     bool Checkbox::intersect(const int32_t x, const int32_t y) const noexcept
     {
-        const auto offset = math::int2(layout->getOffset().getWidth().get(), layout->getOffset().getHeight().get());
-        const auto size   = math::int2(layout->getSize().getWidth().get(), layout->getSize().getHeight().get());
-        const math::AABB aabb(offset, offset + size);
+        // Intersect with checkmark box.
+        const auto       lower = math::int2{elements.boxBlock->bounds.x0, elements.boxBlock->bounds.y0};
+        const auto       upper = math::int2{elements.boxBlock->bounds.x1, elements.boxBlock->bounds.y1};
+        const math::AABB aabb(lower, upper);
         return inside(math::int2(x, y), aabb);
+    }
+
+    void Checkbox::onMouseClick(const InputContext::MouseClick click)
+    {
+        if (click.button == InputContext::MouseButton::Left && click.action == InputContext::MouseAction::Press)
+        {
+            staleData |= StaleData::Scenegraph;
+
+            if (dataSource) dataSource->toggle();
+        }
     }
 
     ////////////////////////////////////////////////////////////////

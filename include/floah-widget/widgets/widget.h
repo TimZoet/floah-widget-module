@@ -38,6 +38,18 @@ namespace floah
 
     public:
         ////////////////////////////////////////////////////////////////
+        // Types.
+        ////////////////////////////////////////////////////////////////
+
+        enum class StaleData
+        {
+            Layout     = 1,
+            Geometry   = 2,
+            Scenegraph = 4,
+            All        = Layout | Geometry | Scenegraph
+        };
+
+        ////////////////////////////////////////////////////////////////
         // Constructors.
         ////////////////////////////////////////////////////////////////
 
@@ -127,6 +139,12 @@ namespace floah
          * \return Stylesheet or nullptr.
          */
         [[nodiscard]] const Stylesheet* getPanelStylesheet() const noexcept;
+
+        /**
+         * \brief Get the data that is stale and needs to be regenerated.
+         * \return StaleData.
+         */
+        [[nodiscard]] StaleData getStaleData() const noexcept;
 
         ////////////////////////////////////////////////////////////////
         // Setters.
@@ -219,5 +237,7 @@ namespace floah
          * \brief Widget stylesheet.
          */
         Stylesheet* stylesheet = nullptr;
+
+        StaleData staleData = StaleData::All;
     };
 }  // namespace floah

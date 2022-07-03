@@ -8,6 +8,7 @@ set(SRC_DIR "src")
 
 set(HEADERS
     ${INCLUDE_DIR}/layer.h
+    ${INCLUDE_DIR}/node_masks.h
     ${INCLUDE_DIR}/panel.h
 
     ${INCLUDE_DIR}/generators/scenegraph_generator.h

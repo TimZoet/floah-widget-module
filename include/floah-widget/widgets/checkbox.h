@@ -25,17 +25,17 @@ namespace floah
     class Checkbox : public Widget
     {
     public:
-        static constexpr char   checkbox_flow[]             = "checkbox.flow";
-        static constexpr char   checkbox_box_height[]       = "checkbox.box.height";
-        static constexpr char   checkbox_box_margin[]       = "checkbox.box.margin";
-        static constexpr char   checkbox_box_size[]         = "checkbox.box.size";
-        static constexpr char   checkbox_box_width[]        = "checkbox.box.width";
-        static constexpr char   checkbox_checkmark_margin[] = "checkbox.checkmark.margin";
-        static constexpr char   checkbox_label_alignment[]  = "checkbox.label.alignment";
-        static constexpr char   checkbox_label_height[]     = "checkbox.label.height";
-        static constexpr char   checkbox_label_margin[]     = "checkbox.label.margin";
-        static constexpr char   checkbox_label_size[]       = "checkbox.label.size";
-        static constexpr char   checkbox_label_width[]      = "checkbox.label.width";
+        static constexpr char checkbox_flow[]             = "checkbox.flow";
+        static constexpr char checkbox_box_height[]       = "checkbox.box.height";
+        static constexpr char checkbox_box_margin[]       = "checkbox.box.margin";
+        static constexpr char checkbox_box_size[]         = "checkbox.box.size";
+        static constexpr char checkbox_box_width[]        = "checkbox.box.width";
+        static constexpr char checkbox_checkmark_margin[] = "checkbox.checkmark.margin";
+        static constexpr char checkbox_label_alignment[]  = "checkbox.label.alignment";
+        static constexpr char checkbox_label_height[]     = "checkbox.label.height";
+        static constexpr char checkbox_label_margin[]     = "checkbox.label.margin";
+        static constexpr char checkbox_label_size[]       = "checkbox.label.size";
+        static constexpr char checkbox_label_width[]      = "checkbox.label.width";
         // checkbox_flow_default
         static constexpr Length checkbox_box_height_default = Length(1.0f);
         static constexpr Margin checkbox_box_margin_default = Margin();
@@ -98,6 +98,8 @@ namespace floah
 
         [[nodiscard]] bool intersect(int32_t x, int32_t y) const noexcept override;
 
+        void onMouseClick(InputContext::MouseClick click) override;
+
     protected:
         ////////////////////////////////////////////////////////////////
         // Stylesheet getters.
@@ -147,9 +149,9 @@ namespace floah
 
         struct
         {
-            sol::MeshNode* box       = nullptr;
-            sol::MeshNode* checkmark = nullptr;
-            sol::MeshNode* label     = nullptr;
+            sol::Node* box       = nullptr;
+            sol::Node* checkmark = nullptr;
+            sol::Node* label     = nullptr;
         } nodes;
 
         IBoolDataSource* dataSource = nullptr;

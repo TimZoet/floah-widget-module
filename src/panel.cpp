@@ -11,6 +11,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "common/enum_classes.h"
 #include "floah-common/floah_error.h"
 #include "math/include_all.h"
 
@@ -114,7 +115,9 @@ namespace floah
 
     void Panel::generateWidgetLayouts()
     {
-        for (auto& w : widgets)
+        for (auto& w : widgets | std::views::filter([](const auto& widget) {
+                           return any(widget->getStaleData() & Widget::StaleData::Layout);
+                       }))
         {
             // Look for element in panel layout widget is attached to.
             const auto it = std::ranges::find_if(blocks, [&](const Block& block) {
@@ -133,12 +136,18 @@ namespace floah
 
     void Panel::generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap) const
     {
-        for (const auto& w : widgets) w->generateGeometry(meshManager, fontMap);
+        for (const auto& w : widgets | std::views::filter([](const auto& widget) {
+                                 return any(widget->getStaleData() & Widget::StaleData::Geometry);
+                             }))
+            w->generateGeometry(meshManager, fontMap);
     }
 
     void Panel::generateScenegraph(IScenegraphGenerator& generator) const
     {
-        for (const auto& w : widgets) w->generateScenegraph(generator);
+        for (const auto& w : widgets | std::views::filter([](const auto& widget) {
+                                 return any(widget->getStaleData() & Widget::StaleData::Scenegraph);
+                             }))
+            w->generateScenegraph(generator);
     }
 
     ////////////////////////////////////////////////////////////////

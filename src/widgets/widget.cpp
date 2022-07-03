@@ -4,6 +4,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "common/enum_classes.h"
 #include "floah-common/floah_error.h"
 
 ////////////////////////////////////////////////////////////////
@@ -50,6 +51,8 @@ namespace floah
 
     const Stylesheet* Widget::getPanelStylesheet() const noexcept { return panel->getStylesheet(); }
 
+    Widget::StaleData Widget::getStaleData() const noexcept { return staleData; }
+
     ////////////////////////////////////////////////////////////////
     // Setters.
     ////////////////////////////////////////////////////////////////
@@ -68,11 +71,13 @@ namespace floah
     // Generate.
     ////////////////////////////////////////////////////////////////
 
-    void Widget::generateLayout(Size size, Size offset)
+    void Widget::generateLayout(const Size size, const Size offset)
     {
-        layout->getSize()   = std::move(size);
-        layout->getOffset() = std::move(offset);
+        layout->getSize()   = size;
+        layout->getOffset() = offset;
         blocks              = layout->generate();
+
+        staleData           = staleData & ~StaleData::Layout;
     }
 
     ////////////////////////////////////////////////////////////////
