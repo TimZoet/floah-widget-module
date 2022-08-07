@@ -231,7 +231,10 @@ namespace floah
          */
         LayoutElement* panelElement = nullptr;
 
-        std::vector<Block> blocks;
+        /**
+         * \brief Generated layout blocks.
+         */
+        std::vector<Block> layoutBlocks;
 
         /**
          * \brief Widget stylesheet.

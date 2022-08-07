@@ -75,7 +75,7 @@ namespace floah
     {
         layout->getSize()   = size;
         layout->getOffset() = offset;
-        blocks              = layout->generate();
+        layoutBlocks        = layout->generate();
 
         staleData           = staleData & ~StaleData::Layout;
     }

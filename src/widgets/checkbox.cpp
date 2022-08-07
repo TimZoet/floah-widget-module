@@ -58,7 +58,11 @@ namespace floah
 
     void Checkbox::setLabel(std::string l) { label = std::move(l); }
 
-    void Checkbox::setDataSource(IBoolDataSource* source) { dataSource = source; }
+    void Checkbox::setDataSource(IBoolDataSource* source)
+    {
+        dataSource = source;
+        staleData |= StaleData::Scenegraph;
+    }
 
     ////////////////////////////////////////////////////////////////
     // Generate.
@@ -89,22 +93,22 @@ namespace floah
         Widget::generateLayout(size, offset);
 
         // Get blocks for relevant elements.
-        auto it = std::ranges::find_if(blocks, [&](const auto& block) { return block.id == elements.box->getId(); });
-        elements.boxBlock = &*it;
-        it = std::ranges::find_if(blocks, [&](const auto& block) { return block.id == elements.label->getId(); });
-        elements.labelBlock = &*it;
+        auto it =
+          std::ranges::find_if(layoutBlocks, [&](const auto& block) { return block.id == elements.box->getId(); });
+        blocks.box = &*it;
+        it = std::ranges::find_if(layoutBlocks, [&](const auto& block) { return block.id == elements.label->getId(); });
+        blocks.label = &*it;
     }
 
     void Checkbox::generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap)
     {
-        if (!elements.boxBlock) throw FloahError("Cannot generate geometry. Layout was not generated yet.");
+        if (!blocks.box) throw FloahError("Cannot generate geometry. Layout was not generated yet.");
 
         Generator::Params params{.meshManager = meshManager, .fontMap = fontMap};
         // TODO: Update meshes if they already exist.
         {
             RectangleGenerator gen;
-            gen.lower =
-              -0.5f * math::float2(math::min(elements.boxBlock->bounds.width(), elements.boxBlock->bounds.height()));
+            gen.lower    = -0.5f * math::float2(math::min(blocks.box->bounds.width(), blocks.box->bounds.height()));
             gen.upper    = -gen.lower;
             gen.fillMode = RectangleGenerator::FillMode::Outline;
             gen.margin   = Length(2);
@@ -113,10 +117,19 @@ namespace floah
         }
 
         {
+            RectangleGenerator gen;
+            gen.lower        = -0.5f * math::float2(math::min(blocks.box->bounds.width(), blocks.box->bounds.height()));
+            gen.upper        = -gen.lower;
+            gen.fillMode     = RectangleGenerator::FillMode::Fill;
+            gen.margin       = Length(2);
+            gen.color        = getColor();
+            meshes.highlight = &gen.generate(params);
+        }
+
+        {
             CircleGenerator gen;
             gen.fillMode = CircleGenerator::FillMode::Fill;
-            gen.radius   = 0.5f * static_cast<float>(
-                                  math::min(elements.boxBlock->bounds.width(), elements.boxBlock->bounds.height()));
+            gen.radius = 0.5f * static_cast<float>(math::min(blocks.box->bounds.width(), blocks.box->bounds.height()));
             meshes.checkmark = &gen.generate(params);
         }
 
@@ -139,14 +152,17 @@ namespace floah
             // TODO: If math::float3 were directly constructible from
             // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
             // this could be a lot prettier:
-            nodes.box       = &generator.createWidgetNode(math::float3(
-              elements.boxBlock->bounds.center()[0], elements.boxBlock->bounds.center()[1], getInputLayer()));
-            nodes.checkmark = &generator.createWidgetNode(math::float3(
-              elements.boxBlock->bounds.center()[0], elements.boxBlock->bounds.center()[1], getInputLayer()));
-            nodes.label     = &generator.createTextNode(
-              math::float3(elements.labelBlock->bounds.x0, elements.labelBlock->bounds.y0, getInputLayer()));
+            nodes.box = &generator.createWidgetNode(
+              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
+            nodes.highlight = &generator.createWidgetNode(
+              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
+            nodes.checkmark = &generator.createWidgetNode(
+              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
+            nodes.label = &generator.createTextNode(
+              math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer()));
 
             nodes.box->addChild(std::make_unique<sol::MeshNode>(*meshes.box));
+            nodes.highlight->addChild(std::make_unique<sol::MeshNode>(*meshes.highlight));
             nodes.checkmark->addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
             nodes.label->addChild(std::make_unique<sol::MeshNode>(*meshes.label));
         }
@@ -154,6 +170,12 @@ namespace floah
         {
             // TODO: Update nodes if they already exist.
         }
+
+        // Set visibility of highlight.
+        if (entered)
+            nodes.highlight->setTypeMask(0);
+        else
+            nodes.highlight->setTypeMask(static_cast<uint64_t>(NodeMasks::Disabled));
 
         // Set visibility of checkmark.
         if (dataSource && dataSource->get())
@@ -171,10 +193,22 @@ namespace floah
     bool Checkbox::intersect(const int32_t x, const int32_t y) const noexcept
     {
         // Intersect with checkmark box.
-        const auto       lower = math::int2{elements.boxBlock->bounds.x0, elements.boxBlock->bounds.y0};
-        const auto       upper = math::int2{elements.boxBlock->bounds.x1, elements.boxBlock->bounds.y1};
+        const auto       lower = math::int2{blocks.box->bounds.x0, blocks.box->bounds.y0};
+        const auto       upper = math::int2{blocks.box->bounds.x1, blocks.box->bounds.y1};
         const math::AABB aabb(lower, upper);
         return inside(math::int2(x, y), aabb);
+    }
+
+    void Checkbox::onMouseEnter()
+    {
+        entered = true;
+        staleData |= StaleData::Scenegraph;
+    }
+
+    void Checkbox::onMouseExit()
+    {
+        entered = false;
+        staleData |= StaleData::Scenegraph;
     }
 
     void Checkbox::onMouseClick(const InputContext::MouseClick click)
@@ -253,9 +287,9 @@ namespace floah
 
     math::float4 Checkbox::getColor() const noexcept
     {
-        math::float4 color(1, 1, 1, 1);
-        if (stylesheet) return stylesheet->get("color", color);
-        if (panel->getStylesheet()) return panel->getStylesheet()->get("color", color);
-        return color;
+        const auto color = getStylesheetProperty<math::float4>("color");
+        if (color) return *color;
+
+        return {1, 1, 1, 1};
     }
 }  // namespace floah

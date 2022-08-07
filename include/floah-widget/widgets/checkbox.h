@@ -98,6 +98,10 @@ namespace floah
 
         [[nodiscard]] bool intersect(int32_t x, int32_t y) const noexcept override;
 
+        void onMouseEnter() override;
+
+        void onMouseExit() override;
+
         void onMouseClick(InputContext::MouseClick click) override;
 
     protected:
@@ -133,16 +137,21 @@ namespace floah
 
         struct
         {
-            HorizontalFlow* root       = nullptr;
-            LayoutElement*  box        = nullptr;
-            LayoutElement*  label      = nullptr;
-            Block*          boxBlock   = nullptr;
-            Block*          labelBlock = nullptr;
+            HorizontalFlow* root  = nullptr;
+            LayoutElement*  box   = nullptr;
+            LayoutElement*  label = nullptr;
         } elements;
 
         struct
         {
+            Block* box   = nullptr;
+            Block* label = nullptr;
+        } blocks;
+
+        struct
+        {
             sol::IMesh* box       = nullptr;
+            sol::IMesh* highlight = nullptr;
             sol::IMesh* checkmark = nullptr;
             sol::IMesh* label     = nullptr;
         } meshes;
@@ -150,10 +159,13 @@ namespace floah
         struct
         {
             sol::Node* box       = nullptr;
+            sol::Node* highlight = nullptr;
             sol::Node* checkmark = nullptr;
             sol::Node* label     = nullptr;
         } nodes;
 
         IBoolDataSource* dataSource = nullptr;
+
+        bool entered = false;
     };
 }  // namespace floah
