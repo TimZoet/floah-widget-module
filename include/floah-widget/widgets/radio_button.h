@@ -37,6 +37,8 @@ namespace floah
         static constexpr char radiobutton_label_margin[]     = "radiobutton.label.margin";
         static constexpr char radiobutton_label_size[]       = "radiobutton.label.size";
         static constexpr char radiobutton_label_width[]      = "radiobutton.label.width";
+        static constexpr char radiobutton_material_text[]    = "radiobutton.material.text";
+        static constexpr char radiobutton_material_widget[]  = "radiobutton.material.widget";
         // radiobutton_flow_default
         static constexpr Length radiobutton_box_height_default = Length(1.0f);
         static constexpr Margin radiobutton_box_margin_default = Margin();
@@ -118,7 +120,7 @@ namespace floah
 
         void onMouseExit() override;
 
-        void onMouseClick(InputContext::MouseClick click) override;
+        [[nodiscard]] InputContext::MouseClickResult onMouseClick(InputContext::MouseClick click) override;
 
     protected:
         ////////////////////////////////////////////////////////////////
@@ -148,6 +150,10 @@ namespace floah
         [[nodiscard]] Margin getLabelMargin() const noexcept;
 
         [[nodiscard]] Length getLabelWidth() const noexcept;
+
+        [[nodiscard]] sol::ForwardMaterialInstance* getTextMaterial() const noexcept;
+
+        [[nodiscard]] sol::ForwardMaterialInstance* getWidgetMaterial() const noexcept;
 
         [[nodiscard]] math::float4 getColor() const noexcept;
 
@@ -180,10 +186,9 @@ namespace floah
 
         struct
         {
-            sol::Node* box       = nullptr;
+            sol::Node* root      = nullptr;
             sol::Node* highlight = nullptr;
             sol::Node* checkmark = nullptr;
-            sol::Node* label     = nullptr;
         } nodes;
 
         IBoolDataSource* dataSource = nullptr;
@@ -198,6 +203,9 @@ namespace floah
          */
         std::vector<RadioButton*> siblings;
 
-        bool entered = false;
+        struct
+        {
+            bool entered = false;
+        } state;
     };
 }  // namespace floah

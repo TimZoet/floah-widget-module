@@ -19,6 +19,7 @@
 #include "sol/mesh/mesh_manager.h"
 #include "sol/scenegraph/node.h"
 #include "sol/scenegraph/drawable/mesh_node.h"
+#include "sol/scenegraph/forward/forward_material_node.h"
 
 ////////////////////////////////////////////////////////////////
 // Current target includes.
@@ -37,7 +38,7 @@ namespace floah
 
     Checkbox::~Checkbox() noexcept
     {
-        // TODO: Destroy any allocated meshes.
+        // TODO: Destroy any allocated meshes, nodes, etc.
         // if (meshes.box) meshManager.destroyMesh(meshes.box->getUuid());
         // if (meshes.checkmark) meshManager.destroyMesh(meshes.checkmark->getUuid());
     }
@@ -147,24 +148,28 @@ namespace floah
         if (!meshes.box) throw FloahError("Cannot generate scenegraph. Geometry was not generated yet.");
 
 
-        if (!nodes.box)
+        if (!nodes.root)
         {
+            nodes.root = &generator.createWidgetNode();
+
+            auto& widgetMtlNode = nodes.root->addChild(std::make_unique<sol::ForwardMaterialNode>());
+            widgetMtlNode.setMaterial(getWidgetMaterial());
+
+            auto& textMtlNode = generator.createTextMaterialNode(*nodes.root, *getTextMaterial());
+
             // TODO: If math::float3 were directly constructible from
             // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
             // this could be a lot prettier:
-            nodes.box = &generator.createWidgetNode(
-              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
-            nodes.highlight = &generator.createWidgetNode(
-              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
-            nodes.checkmark = &generator.createWidgetNode(
-              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
-            nodes.label = &generator.createTextNode(
-              math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer()));
 
-            nodes.box->addChild(std::make_unique<sol::MeshNode>(*meshes.box));
-            nodes.highlight->addChild(std::make_unique<sol::MeshNode>(*meshes.highlight));
-            nodes.checkmark->addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
-            nodes.label->addChild(std::make_unique<sol::MeshNode>(*meshes.label));
+            auto& widgetTansformNode = widgetMtlNode.addChild(generator.createTransformNode(
+              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer())));
+            widgetTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
+            nodes.highlight = &widgetTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.highlight));
+            nodes.checkmark = &widgetTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
+
+            auto& labelTransformNode = textMtlNode.addChild(generator.createTransformNode(
+              math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer())));
+            labelTransformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.label));
         }
         else
         {
@@ -172,7 +177,7 @@ namespace floah
         }
 
         // Set visibility of highlight.
-        if (entered)
+        if (state.entered)
             nodes.highlight->setTypeMask(0);
         else
             nodes.highlight->setTypeMask(static_cast<uint64_t>(NodeMasks::Disabled));
@@ -201,17 +206,17 @@ namespace floah
 
     void Checkbox::onMouseEnter()
     {
-        entered = true;
+        state.entered = true;
         staleData |= StaleData::Scenegraph;
     }
 
     void Checkbox::onMouseExit()
     {
-        entered = false;
+        state.entered = false;
         staleData |= StaleData::Scenegraph;
     }
 
-    void Checkbox::onMouseClick(const InputContext::MouseClick click)
+    InputContext::MouseClickResult Checkbox::onMouseClick(const InputContext::MouseClick click)
     {
         if (click.button == InputContext::MouseButton::Left && click.action == InputContext::MouseAction::Press)
         {
@@ -219,6 +224,8 @@ namespace floah
 
             if (dataSource) dataSource->toggle();
         }
+
+        return InputContext::MouseClickResult{};
     }
 
     ////////////////////////////////////////////////////////////////
@@ -283,6 +290,24 @@ namespace floah
         if (size) return size->getWidth();
 
         return checkbox_label_width_default;
+    }
+
+    sol::ForwardMaterialInstance* Checkbox::getTextMaterial() const noexcept
+    {
+        auto mtl = getStylesheetProperty<sol::ForwardMaterialInstance*>(checkbox_material_text);
+        if (mtl) return *mtl;
+        mtl = getStylesheetProperty<sol::ForwardMaterialInstance*>(material_text);
+        if (mtl) return *mtl;
+        return nullptr;
+    }
+
+    sol::ForwardMaterialInstance* Checkbox::getWidgetMaterial() const noexcept
+    {
+        auto mtl = getStylesheetProperty<sol::ForwardMaterialInstance*>(checkbox_material_widget);
+        if (mtl) return *mtl;
+        mtl = getStylesheetProperty<sol::ForwardMaterialInstance*>(material_widget);
+        if (mtl) return *mtl;
+        return nullptr;
     }
 
     math::float4 Checkbox::getColor() const noexcept

@@ -36,6 +36,8 @@ namespace floah
         static constexpr char checkbox_label_margin[]     = "checkbox.label.margin";
         static constexpr char checkbox_label_size[]       = "checkbox.label.size";
         static constexpr char checkbox_label_width[]      = "checkbox.label.width";
+        static constexpr char checkbox_material_text[]    = "checkbox.material.text";
+        static constexpr char checkbox_material_widget[]  = "checkbox.material.widget";
         // checkbox_flow_default
         static constexpr Length checkbox_box_height_default = Length(1.0f);
         static constexpr Margin checkbox_box_margin_default = Margin();
@@ -102,7 +104,7 @@ namespace floah
 
         void onMouseExit() override;
 
-        void onMouseClick(InputContext::MouseClick click) override;
+        [[nodiscard]] InputContext::MouseClickResult onMouseClick(InputContext::MouseClick click) override;
 
     protected:
         ////////////////////////////////////////////////////////////////
@@ -126,6 +128,10 @@ namespace floah
         [[nodiscard]] Margin getLabelMargin() const noexcept;
 
         [[nodiscard]] Length getLabelWidth() const noexcept;
+
+        [[nodiscard]] sol::ForwardMaterialInstance* getTextMaterial() const noexcept;
+
+        [[nodiscard]] sol::ForwardMaterialInstance* getWidgetMaterial() const noexcept;
 
         [[nodiscard]] math::float4 getColor() const noexcept;
 
@@ -158,14 +164,16 @@ namespace floah
 
         struct
         {
-            sol::Node* box       = nullptr;
+            sol::Node* root      = nullptr;
             sol::Node* highlight = nullptr;
             sol::Node* checkmark = nullptr;
-            sol::Node* label     = nullptr;
         } nodes;
 
         IBoolDataSource* dataSource = nullptr;
 
-        bool entered = false;
+        struct
+        {
+            bool entered = false;
+        } state;
     };
 }  // namespace floah

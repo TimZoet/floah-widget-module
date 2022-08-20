@@ -37,6 +37,9 @@ namespace floah
         friend class Panel;
 
     public:
+        static constexpr char material_text[]   = "material.text";
+        static constexpr char material_widget[] = "material.widget";
+
         ////////////////////////////////////////////////////////////////
         // Types.
         ////////////////////////////////////////////////////////////////
