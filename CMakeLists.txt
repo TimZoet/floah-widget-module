@@ -11,8 +11,6 @@ set(HEADERS
     ${INCLUDE_DIR}/node_masks.h
     ${INCLUDE_DIR}/panel.h
 
-    ${INCLUDE_DIR}/generators/scenegraph_generator.h
-
     ${INCLUDE_DIR}/widgets/button.h
     ${INCLUDE_DIR}/widgets/checkbox.h
     ${INCLUDE_DIR}/widgets/dropdown.h
@@ -23,8 +21,6 @@ set(HEADERS
 set(SOURCES
     ${SRC_DIR}/layer.cpp
     ${SRC_DIR}/panel.cpp
-
-    ${SRC_DIR}/generators/scenegraph_generator.cpp
 
     ${SRC_DIR}/widgets/button.cpp
     ${SRC_DIR}/widgets/checkbox.cpp

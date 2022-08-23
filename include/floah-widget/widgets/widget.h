@@ -15,13 +15,8 @@
 #include "floah-put/input_element.h"
 #include "floah-viz/font_map.h"
 #include "floah-viz/stylesheet.h"
+#include "floah-viz/scenegraph/scenegraph_generator.h"
 #include "sol/mesh/fwd.h"
-
-////////////////////////////////////////////////////////////////
-// Current target includes.
-////////////////////////////////////////////////////////////////
-
-#include "floah-widget/generators/scenegraph_generator.h"
 
 namespace floah
 {

@@ -174,15 +174,18 @@ namespace floah
             // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
             // this could be a lot prettier:
 
-            auto& widgetTansformNode = widgetMtlNode.addChild(generator.createTransformNode(
-              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer())));
-            widgetTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
-            nodes.highlight = &widgetTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.highlight));
-            nodes.checkmark = &widgetTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
+            auto& widgetTansformNode = generator.createTransformNode(
+              widgetMtlNode,
+              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
+            widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.box));
+            nodes.highlight =
+              &widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.highlight));
+            nodes.checkmark =
+              &widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
 
-            auto& labelTransformNode = textMtlNode.addChild(generator.createTransformNode(
-              math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer())));
-            labelTransformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.label));
+            auto& labelTransformNode = generator.createTransformNode(
+              textMtlNode, math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer()));
+            labelTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.label));
         }
         else
         {

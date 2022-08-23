@@ -16,6 +16,7 @@
 #include "floah-layout/layout_element.h"
 #include "floah-layout/elements/horizontal_flow.h"
 #include "floah-layout/elements/vertical_flow.h"
+#include "floah-viz/scenegraph/transform_node.h"
 
 ////////////////////////////////////////////////////////////////
 // Current target includes.
@@ -119,6 +120,8 @@ namespace floah
 
         [[nodiscard]] InputContext::MouseClickResult onMouseClick(InputContext::MouseClick click) override;
 
+        [[nodiscard]] InputContext::MouseMoveResult onMouseMove(InputContext::MouseMove move) override;
+
     protected:
         ////////////////////////////////////////////////////////////////
         // Stylesheet getters.
@@ -190,11 +193,11 @@ namespace floah
 
         struct
         {
-            sol::Node* root                    = nullptr;
-            sol::Node* highlight               = nullptr;
-            sol::Node* widgetItems             = nullptr;
-            sol::Node* itemsHighlightTransform = nullptr;
-            sol::Node* textItems               = nullptr;
+            sol::Node*      root                    = nullptr;
+            sol::Node*      highlight               = nullptr;
+            sol::Node*      widgetItems             = nullptr;
+            ITransformNode* itemsHighlightTransform = nullptr;
+            sol::Node*      textItems               = nullptr;
         } nodes;
 
         IListDataSource* itemsDataSource = nullptr;
@@ -204,7 +207,15 @@ namespace floah
         struct
         {
             bool entered = false;
-            bool opened  = false;
+
+            bool opened = false;
+
+            /**
+             * \brief Index of the item the cursor is hovering over.
+             */
+            int32_t hightlight = -1;
+
+            bool staleValueMesh = false;
         } state;
     };
 }  // namespace floah

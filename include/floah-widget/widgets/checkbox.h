@@ -13,6 +13,7 @@
 #include "floah-data/i_bool_data_source.h"
 #include "floah-layout/layout_element.h"
 #include "floah-layout/elements/horizontal_flow.h"
+#include "floah-viz/scenegraph/transform_node.h"
 
 ////////////////////////////////////////////////////////////////
 // Current target includes.

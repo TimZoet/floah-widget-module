@@ -38,9 +38,20 @@ namespace floah
 
     Dropdown::~Dropdown() noexcept
     {
-        // TODO: Destroy any allocated meshes.
-        // if (meshes.box) meshManager.destroyMesh(meshes.box->getUuid());
-        // if (meshes.checkmark) meshManager.destroyMesh(meshes.checkmark->getUuid());
+        if (meshes.box)
+        {
+            auto& meshManager = meshes.box->getMeshManager();
+            meshManager.destroyMesh(meshes.box->getUuid());
+            meshManager.destroyMesh(meshes.highlight->getUuid());
+            meshManager.destroyMesh(meshes.value->getUuid());
+            meshManager.destroyMesh(meshes.label->getUuid());
+            meshManager.destroyMesh(meshes.itemsBack->getUuid());
+            meshManager.destroyMesh(meshes.itemsHighlight->getUuid());
+            std::ranges::for_each(meshes.items,
+                                  [](auto* mesh) { mesh->getMeshManager().destroyMesh(mesh->getUuid()); });
+        }
+
+        // TODO: Destroy nodes.
     }
 
     ////////////////////////////////////////////////////////////////
@@ -126,6 +137,7 @@ namespace floah
 
         Generator::Params params{.meshManager = meshManager, .fontMap = fontMap};
         // TODO: Update meshes if they already exist.
+        if (!meshes.box)
         {
             RectangleGenerator gen;
             gen.lower    = -0.5f * math::float2(blocks.box->bounds.width(), blocks.box->bounds.height());
@@ -136,6 +148,7 @@ namespace floah
             meshes.box   = &gen.generate(params);
         }
 
+        if (!meshes.highlight)
         {
             RectangleGenerator gen;
             gen.lower        = -0.5f * math::float2(blocks.box->bounds.width(), blocks.box->bounds.height());
@@ -146,18 +159,25 @@ namespace floah
             meshes.highlight = &gen.generate(params);
         }
 
+        if (!meshes.value || state.staleValueMesh)
         {
+            state.staleValueMesh = false;
+
             TextGenerator gen;
             gen.text     = itemsDataSource->getString(indexDataSource->get<size_t>());
+            params.mesh  = meshes.value;
             meshes.value = &gen.generate(params);
+            params.mesh  = nullptr;
         }
 
+        if (!meshes.label)
         {
             TextGenerator gen;
             gen.text     = label;
             meshes.label = &gen.generate(params);
         }
 
+        if (meshes.items.empty())
         {
             meshes.items.reserve(itemsDataSource->getSize());
             TextGenerator gen;
@@ -168,6 +188,7 @@ namespace floah
             }
         }
 
+        if (!meshes.itemsBack)
         {
             RectangleGenerator gen;
             gen.lower        = -0.5f * math::float2(blocks.items->bounds.width(), blocks.items->bounds.height());
@@ -178,6 +199,7 @@ namespace floah
             meshes.itemsBack = &gen.generate(params);
         }
 
+        if (!meshes.itemsHighlight)
         {
             RectangleGenerator gen;
             gen.lower = math::float2(0);
@@ -197,7 +219,6 @@ namespace floah
     {
         if (!meshes.box) throw FloahError("Cannot generate scenegraph. Geometry was not generated yet.");
 
-
         if (!nodes.root)
         {
             // TODO: If math::float3 were directly constructible from
@@ -210,59 +231,79 @@ namespace floah
 
             auto& textMtlNode = generator.createTextMaterialNode(*nodes.root, *getTextMaterial());
 
-            auto& widgetTansformNode = widgetMtlNode.addChild(generator.createTransformNode(
-              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer())));
-            widgetTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.box));
-            nodes.highlight = &widgetTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.highlight));
+            auto& widgetTansformNode = generator.createTransformNode(
+              widgetMtlNode,
+              math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
+            widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.box));
+            nodes.highlight =
+              &widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.highlight));
 
-            auto& valueTransformNode = textMtlNode.addChild(generator.createTransformNode(
-              math::float3(blocks.box->bounds.x0, blocks.box->bounds.y0, getInputLayer())));
-            valueTransformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.value));
+            auto& valueTransformNode = generator.createTransformNode(
+              textMtlNode, math::float3(blocks.box->bounds.x0, blocks.box->bounds.y0, getInputLayer()));
+            valueTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.value));
 
-            auto& labelTransformNode = textMtlNode.addChild(generator.createTransformNode(
-              math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer())));
-            labelTransformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.label));
+            auto& labelTransformNode = generator.createTransformNode(
+              textMtlNode, math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer()));
+            labelTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.label));
 
-            nodes.widgetItems      = &widgetMtlNode.addChild(std::make_unique<sol::Node>());
-            auto& backTansformNode = nodes.widgetItems->addChild(
-              generator.createTransformNode(math::float3(static_cast<float>(blocks.items->bounds.center()[0]),
+            nodes.widgetItems = &widgetMtlNode.addChild(std::make_unique<sol::Node>());
+            auto& backTansformNode =
+              generator.createTransformNode(*nodes.widgetItems,
+                                            math::float3(static_cast<float>(blocks.items->bounds.center()[0]),
                                                          static_cast<float>(blocks.items->bounds.center()[1]),
-                                                         static_cast<float>(getInputLayer()) - 0.2f)));
-            backTansformNode.addChild(std::make_unique<sol::MeshNode>(*meshes.itemsBack));
+                                                         static_cast<float>(getInputLayer()) - 0.2f));
+            backTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.itemsBack));
 
-            nodes.itemsHighlightTransform = &nodes.widgetItems->addChild(
-              generator.createTransformNode(math::float3(static_cast<float>(blocks.items->bounds.x0),
-                                                         static_cast<float>(blocks.items->bounds.y0),
-                                                         static_cast<float>(getInputLayer()) - 0.1f)));
-            nodes.itemsHighlightTransform->addChild(std::make_unique<sol::MeshNode>(*meshes.itemsHighlight));
+            nodes.itemsHighlightTransform = &generator.createTransformNode(*nodes.widgetItems, math::float3(0));
+            nodes.itemsHighlightTransform->getAsNode().addChild(
+              std::make_unique<sol::MeshNode>(*meshes.itemsHighlight));
 
             nodes.textItems = &textMtlNode.addChild(std::make_unique<sol::Node>());
             const auto h    = static_cast<float>(blocks.items->bounds.height()) / static_cast<float>(getItemsMax());
             for (size_t i = 0; i < std::min(itemsDataSource->getSize(), getItemsMax()); i++)
             {
-                auto& trans = nodes.textItems->addChild(generator.createTransformNode(
+                auto& trans = generator.createTransformNode(
+                  *nodes.textItems,
                   math::float3(static_cast<float>(blocks.items->bounds.x0),
                                static_cast<float>(blocks.items->bounds.y0) + static_cast<float>(i) * h,
-                               static_cast<float>(getInputLayer()))));
+                               static_cast<float>(getInputLayer())));
 
-                trans.addChild(std::make_unique<sol::MeshNode>(*meshes.items[i]));
+                trans.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.items[i]));
             }
         }
         else
         {
+
             // TODO: Update nodes if they already exist.
         }
 
         // Set visibility of highlight.
-        if (state.entered)
+        if (state.entered && !state.opened)
             nodes.highlight->setTypeMask(0);
         else
             nodes.highlight->setTypeMask(static_cast<uint64_t>(NodeMasks::Disabled));
 
+        // Set visiblity of dropdown items.
         if (state.opened)
         {
             nodes.textItems->setTypeMask(0);
             nodes.widgetItems->setTypeMask(0);
+
+            // Move highlight to item cursor is hovering over.
+            if (state.hightlight == -1)
+                nodes.itemsHighlightTransform->getAsNode().setTypeMask(static_cast<uint64_t>(NodeMasks::Disabled));
+            else
+            {
+                nodes.itemsHighlightTransform->getAsNode().setTypeMask(0);
+
+                const float offset = static_cast<float>(state.hightlight) *
+                                     static_cast<float>(blocks.items->bounds.height()) /
+                                     static_cast<float>(getItemsMax());
+                nodes.itemsHighlightTransform->setOffset(
+                  math::float3(static_cast<float>(blocks.items->bounds.x0),
+                               static_cast<float>(blocks.items->bounds.y0) + offset,
+                               static_cast<float>(getInputLayer()) - 0.1f));
+            }
         }
         else
         {
@@ -313,11 +354,17 @@ namespace floah
         {
             if (state.opened)
             {
-                // TODO:
-                // Update index if clicking item.
-                // Just close if not  clicking item.
                 state.opened = false;
                 staleData |= StaleData::Scenegraph;
+
+                // Update index (if at all possible).
+                if (!indexDataSource || !itemsDataSource || state.hightlight == -1)
+                    return InputContext::MouseClickResult{.claim = false};
+                indexDataSource->set(state.hightlight);
+
+                staleData |= StaleData::Geometry;
+                state.staleValueMesh = true;
+
                 return InputContext::MouseClickResult{.claim = false};
             }
 
@@ -330,7 +377,33 @@ namespace floah
         return InputContext::MouseClickResult{.claim = state.opened};
     }
 
-    // TODO: Need onMouseMove event to update highlighted item.
+    InputContext::MouseMoveResult Dropdown::onMouseMove(const InputContext::MouseMove move)
+    {
+        staleData |= StaleData::Scenegraph;
+
+        if (state.opened)
+        {
+            state.hightlight = -1;
+
+            // Move highlight to item being hovered over.
+            const auto       lower = math::int2{blocks.items->bounds.x0, blocks.items->bounds.y0};
+            const auto       upper = math::int2{blocks.items->bounds.x1, blocks.items->bounds.y1};
+            const math::AABB aabb(lower, upper);
+            if (inside(move.current, aabb))
+            {
+                const float y = static_cast<float>(move.current.y - blocks.items->bounds.y0) /
+                                static_cast<float>(blocks.items->bounds.height());
+                state.hightlight = static_cast<int32_t>(y * static_cast<float>(getItemsMax()));
+
+                // TODO: Include scroll offset.
+                // Limit to visible items.
+                if (itemsDataSource && static_cast<size_t>(state.hightlight) >= itemsDataSource->getSize())
+                    state.hightlight = -1;
+            }
+        }
+
+        return InputContext::MouseMoveResult{};
+    }
 
     ////////////////////////////////////////////////////////////////
     // Stylesheet getters.

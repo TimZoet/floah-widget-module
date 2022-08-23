@@ -15,6 +15,7 @@
 #include "floah-layout/layout.h"
 #include "floah-put/input_context.h"
 #include "floah-put/input_element.h"
+#include "floah-viz/scenegraph/scenegraph_generator.h"
 #include "sol/mesh/fwd.h"
 #include "sol/scenegraph/fwd.h"
 
@@ -23,7 +24,6 @@
 ////////////////////////////////////////////////////////////////
 
 #include "floah-widget/layer.h"
-#include "floah-widget/generators/scenegraph_generator.h"
 #include "floah-widget/widgets/widget.h"
 
 namespace floah
