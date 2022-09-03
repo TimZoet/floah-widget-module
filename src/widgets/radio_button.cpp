@@ -46,7 +46,7 @@ namespace floah
     RadioButton::~RadioButton() noexcept
     {
         if (mainButton) mainButton->siblings.erase(std::ranges::find(mainButton->siblings, this));
-
+        if (dataSource) dataSource->removeDataListener(*this);
         // TODO: Destroy any allocated meshes, nodes, etc.
         // if (meshes.box) meshManager.destroyMesh(meshes.box->getUuid());
         // if (meshes.checkmark) meshManager.destroyMesh(meshes.checkmark->getUuid());
@@ -74,7 +74,10 @@ namespace floah
 
     void RadioButton::setDataSource(IBoolDataSource* source)
     {
+        if (source == dataSource) return;
+        if (dataSource) dataSource->removeDataListener(*this);
         dataSource = source;
+        if (dataSource) dataSource->addDataListener(*this);
         staleData |= StaleData::Scenegraph;
     }
 
@@ -236,8 +239,6 @@ namespace floah
     {
         if (click.button == InputContext::MouseButton::Left && click.action == InputContext::MouseAction::Press)
         {
-            staleData |= StaleData::Scenegraph;
-
             if (mainButton)
                 mainButton->setMain(*this);
             else
@@ -245,6 +246,15 @@ namespace floah
         }
 
         return InputContext::MouseClickResult{};
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // DataListener.
+    ////////////////////////////////////////////////////////////////
+
+    void RadioButton::onDataSourceUpdate(DataSource&)
+    {
+        staleData |= StaleData::Scenegraph;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -260,7 +270,6 @@ namespace floah
         if (dataSource)
         {
             dataSource->set(this == &setButton);
-            staleData |= StaleData::Scenegraph;
         }
 
         for (auto* b : siblings)
@@ -268,7 +277,6 @@ namespace floah
             if (b->dataSource)
             {
                 b->dataSource->set(b == &setButton);
-                b->staleData |= StaleData::Scenegraph;
             }
         }
     }

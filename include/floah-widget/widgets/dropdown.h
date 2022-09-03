@@ -122,6 +122,14 @@ namespace floah
 
         [[nodiscard]] InputContext::MouseMoveResult onMouseMove(InputContext::MouseMove move) override;
 
+        [[nodiscard]] InputContext::MouseScrollResult onMouseScroll(InputContext::MouseScroll scroll) override;
+
+        ////////////////////////////////////////////////////////////////
+        // DataListener.
+        ////////////////////////////////////////////////////////////////
+
+        void onDataSourceUpdate(DataSource& source) override;
+
     protected:
         ////////////////////////////////////////////////////////////////
         // Stylesheet getters.
@@ -156,6 +164,15 @@ namespace floah
         [[nodiscard]] sol::ForwardMaterialInstance* getWidgetMaterial() const noexcept;
 
         [[nodiscard]] math::float4 getColor() const noexcept;
+
+        ////////////////////////////////////////////////////////////////
+        // Utils.
+        ////////////////////////////////////////////////////////////////
+
+        /**
+         * \brief Limit scroll value to visible/available items.
+         */
+        void calculateScroll() noexcept;
 
         ////////////////////////////////////////////////////////////////
         // Member variables.
@@ -198,6 +215,7 @@ namespace floah
             sol::Node*      widgetItems             = nullptr;
             ITransformNode* itemsHighlightTransform = nullptr;
             sol::Node*      textItems               = nullptr;
+            sol::MeshNode*  value                   = nullptr;
         } nodes;
 
         IListDataSource* itemsDataSource = nullptr;
@@ -210,12 +228,16 @@ namespace floah
 
             bool opened = false;
 
+            int32_t scroll = 0;
+
             /**
              * \brief Index of the item the cursor is hovering over.
              */
             int32_t hightlight = -1;
 
-            bool staleValueMesh = false;
+            bool isValueMeshState = false;
+
+            bool isItemsMeshStale = false;
         } state;
     };
 }  // namespace floah

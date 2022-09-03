@@ -107,6 +107,12 @@ namespace floah
 
         [[nodiscard]] InputContext::MouseClickResult onMouseClick(InputContext::MouseClick click) override;
 
+        ////////////////////////////////////////////////////////////////
+        // DataListener.
+        ////////////////////////////////////////////////////////////////
+
+        void onDataSourceUpdate(DataSource& source) override;
+
     protected:
         ////////////////////////////////////////////////////////////////
         // Stylesheet getters.

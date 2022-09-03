@@ -38,6 +38,7 @@ namespace floah
 
     Checkbox::~Checkbox() noexcept
     {
+        if (dataSource) dataSource->removeDataListener(*this);
         // TODO: Destroy any allocated meshes, nodes, etc.
         // if (meshes.box) meshManager.destroyMesh(meshes.box->getUuid());
         // if (meshes.checkmark) meshManager.destroyMesh(meshes.checkmark->getUuid());
@@ -61,7 +62,10 @@ namespace floah
 
     void Checkbox::setDataSource(IBoolDataSource* source)
     {
+        if (source == dataSource) return;
+        if (dataSource) dataSource->removeDataListener(*this);
         dataSource = source;
+        if (dataSource) dataSource->addDataListener(*this);
         staleData |= StaleData::Scenegraph;
     }
 
@@ -223,13 +227,17 @@ namespace floah
     {
         if (click.button == InputContext::MouseButton::Left && click.action == InputContext::MouseAction::Press)
         {
-            staleData |= StaleData::Scenegraph;
-
             if (dataSource) dataSource->toggle();
         }
 
         return InputContext::MouseClickResult{};
     }
+
+    ////////////////////////////////////////////////////////////////
+    // DataListener.
+    ////////////////////////////////////////////////////////////////
+
+    void Checkbox::onDataSourceUpdate(DataSource&) { staleData |= StaleData::Scenegraph; }
 
     ////////////////////////////////////////////////////////////////
     // Stylesheet getters.

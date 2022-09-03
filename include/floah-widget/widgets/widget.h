@@ -11,6 +11,7 @@
 // Module includes.
 ////////////////////////////////////////////////////////////////
 
+#include "floah-data/data_listener.h"
 #include "floah-layout/layout.h"
 #include "floah-put/input_element.h"
 #include "floah-viz/font_map.h"
@@ -27,7 +28,7 @@ namespace floah
     using PanelPtr  = std::unique_ptr<Panel>;
     using WidgetPtr = std::unique_ptr<Widget>;
 
-    class Widget : public InputElement
+    class Widget : public InputElement, public DataListener
     {
         friend class Panel;
 

@@ -52,6 +52,9 @@ namespace floah
         }
 
         // TODO: Destroy nodes.
+
+        if (indexDataSource) indexDataSource->removeDataListener(*this);
+        if (itemsDataSource) itemsDataSource->removeDataListener(*this);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -76,13 +79,19 @@ namespace floah
 
     void Dropdown::setItemsDataSource(IListDataSource* source)
     {
+        if (source == itemsDataSource) return;
+        if (itemsDataSource) itemsDataSource->removeDataListener(*this);
         itemsDataSource = source;
+        if (itemsDataSource) itemsDataSource->addDataListener(*this);
         staleData |= StaleData::Scenegraph;
     }
 
     void Dropdown::setIndexDataSource(IIntegralValueDataSource* source)
     {
+        if (source == indexDataSource) return;
+        if (indexDataSource) indexDataSource->removeDataListener(*this);
         indexDataSource = source;
+        if (indexDataSource) indexDataSource->addDataListener(*this);
         staleData |= StaleData::Scenegraph;
     }
 
@@ -136,7 +145,7 @@ namespace floah
         if (!blocks.box) throw FloahError("Cannot generate geometry. Layout was not generated yet.");
 
         Generator::Params params{.meshManager = meshManager, .fontMap = fontMap};
-        // TODO: Update meshes if they already exist.
+
         if (!meshes.box)
         {
             RectangleGenerator gen;
@@ -159,15 +168,16 @@ namespace floah
             meshes.highlight = &gen.generate(params);
         }
 
-        if (!meshes.value || state.staleValueMesh)
+        if (!meshes.value || state.isValueMeshState)
         {
-            state.staleValueMesh = false;
+            state.isValueMeshState = false;
+
+            // Destroy old mesh.
+            if (meshes.value) meshes.value->getMeshManager().destroyMesh(meshes.value->getUuid());
 
             TextGenerator gen;
             gen.text     = itemsDataSource->getString(indexDataSource->get<size_t>());
-            params.mesh  = meshes.value;
             meshes.value = &gen.generate(params);
-            params.mesh  = nullptr;
         }
 
         if (!meshes.label)
@@ -177,14 +187,21 @@ namespace floah
             meshes.label = &gen.generate(params);
         }
 
-        if (meshes.items.empty())
+        if (state.opened && (meshes.items.empty() || state.isItemsMeshStale))
         {
-            meshes.items.reserve(itemsDataSource->getSize());
+            state.isItemsMeshStale = false;
+
+            // Destroy old meshes.
+            std::ranges::for_each(meshes.items,
+                                  [](auto* mesh) { mesh->getMeshManager().destroyMesh(mesh->getUuid()); });
+
+            meshes.items.resize(math::min(itemsDataSource->getSize(), getItemsMax()));
+
             TextGenerator gen;
-            for (size_t i = 0; i < itemsDataSource->getSize(); i++)
+            for (size_t i = 0; i < meshes.items.size(); i++)
             {
-                gen.text = itemsDataSource->getString(i);
-                meshes.items.emplace_back(&gen.generate(params));
+                gen.text        = itemsDataSource->getString(i + state.scroll);
+                meshes.items[i] = &gen.generate(params);
             }
         }
 
@@ -240,7 +257,7 @@ namespace floah
 
             auto& valueTransformNode = generator.createTransformNode(
               textMtlNode, math::float3(blocks.box->bounds.x0, blocks.box->bounds.y0, getInputLayer()));
-            valueTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.value));
+            nodes.value = &valueTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.value));
 
             auto& labelTransformNode = generator.createTransformNode(
               textMtlNode, math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer()));
@@ -260,7 +277,7 @@ namespace floah
 
             nodes.textItems = &textMtlNode.addChild(std::make_unique<sol::Node>());
             const auto h    = static_cast<float>(blocks.items->bounds.height()) / static_cast<float>(getItemsMax());
-            for (size_t i = 0; i < std::min(itemsDataSource->getSize(), getItemsMax()); i++)
+            for (size_t i = 0; i < getItemsMax(); i++)
             {
                 auto& trans = generator.createTransformNode(
                   *nodes.textItems,
@@ -268,13 +285,24 @@ namespace floah
                                static_cast<float>(blocks.items->bounds.y0) + static_cast<float>(i) * h,
                                static_cast<float>(getInputLayer())));
 
-                trans.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.items[i]));
+                if (i < meshes.items.size())
+                    trans.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.items[i]));
+                else
+                    trans.getAsNode().addChild(std::make_unique<sol::MeshNode>());
             }
         }
         else
         {
-
             // TODO: Update nodes if they already exist.
+            nodes.value->setMesh(meshes.value);
+
+            size_t i = 0;
+            for (auto& trans : nodes.textItems->getChildren())
+            {
+                static_cast<sol::MeshNode&>(*trans->getChildren()[0])
+                  .setMesh(i < meshes.items.size() ? meshes.items[i] : nullptr);
+                i++;
+            }
         }
 
         // Set visibility of highlight.
@@ -360,17 +388,13 @@ namespace floah
                 // Update index (if at all possible).
                 if (!indexDataSource || !itemsDataSource || state.hightlight == -1)
                     return InputContext::MouseClickResult{.claim = false};
-                indexDataSource->set(state.hightlight);
-
-                staleData |= StaleData::Geometry;
-                state.staleValueMesh = true;
+                indexDataSource->set(state.hightlight + state.scroll);
 
                 return InputContext::MouseClickResult{.claim = false};
             }
 
             state.opened = true;
-            // TODO: This might require regenerating meshes to display items text.
-            staleData |= StaleData::Scenegraph;
+            staleData |= StaleData::Geometry | StaleData::Scenegraph;
             return InputContext::MouseClickResult{.claim = true};
         }
 
@@ -403,6 +427,35 @@ namespace floah
         }
 
         return InputContext::MouseMoveResult{};
+    }
+
+    InputContext::MouseScrollResult Dropdown::onMouseScroll(const InputContext::MouseScroll scroll)
+    {
+        // Only scroll when opened.
+        if (!state.opened) return InputContext::MouseScrollResult{};
+
+        const auto oldScroll = state.scroll;
+        state.scroll -= scroll.scroll.y;
+        calculateScroll();
+
+        if (state.scroll != oldScroll)
+        {
+            staleData |= StaleData::Geometry | StaleData::Scenegraph;
+            state.isItemsMeshStale = true;
+        }
+
+        return InputContext::MouseScrollResult{};
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // DataListener.
+    ////////////////////////////////////////////////////////////////
+
+    void Dropdown::onDataSourceUpdate(DataSource&)
+    {
+        staleData |= StaleData::Geometry | StaleData::Scenegraph;
+        state.isValueMeshState = true;
+        state.isItemsMeshStale = true;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -510,4 +563,19 @@ namespace floah
 
         return {1, 1, 1, 1};
     }
+
+    ////////////////////////////////////////////////////////////////
+    // Utils.
+    ////////////////////////////////////////////////////////////////
+
+    void Dropdown::calculateScroll() noexcept
+    {
+        const auto max = getItemsMax(), size = itemsDataSource ? itemsDataSource->getSize() : 0;
+        if (size <= max) { state.scroll = 0; }
+        else
+        {
+            state.scroll = math::clamp(state.scroll, 0, static_cast<int32_t>(size - max));
+        }
+    }
+
 }  // namespace floah
