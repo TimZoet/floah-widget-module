@@ -11,6 +11,7 @@
 // Current target includes.
 ////////////////////////////////////////////////////////////////
 
+#include "floah-data/data_source.h"
 #include "floah-widget/panel.h"
 
 namespace floah

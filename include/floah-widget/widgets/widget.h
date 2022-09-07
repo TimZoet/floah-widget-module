@@ -161,6 +161,23 @@ namespace floah
          */
         void setStylesheet(Stylesheet* sheet) noexcept;
 
+        /**
+         * \brief Replace current data source with new data soruce. Automatically takes care of removing and adding data listener.
+         * \tparam T DataSource.
+         * \param current Current data source.
+         * \param replacement New data source.
+         * \return True if value was updated, false if current and replacement were the same.
+         */
+        template<typename T>
+        bool replaceDataSource(T** current, T* replacement)
+        {
+            if (*current == replacement) return false;
+            if (*current) (*current)->removeDataListener(*this);
+            *current = replacement;
+            if (*current) (*current)->addDataListener(*this);
+            return true;
+        }
+
         ////////////////////////////////////////////////////////////////
         // Generate.
         ////////////////////////////////////////////////////////////////

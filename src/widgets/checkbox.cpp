@@ -62,11 +62,7 @@ namespace floah
 
     void Checkbox::setDataSource(IBoolDataSource* source)
     {
-        if (source == dataSource) return;
-        if (dataSource) dataSource->removeDataListener(*this);
-        dataSource = source;
-        if (dataSource) dataSource->addDataListener(*this);
-        staleData |= StaleData::Scenegraph;
+        if (replaceDataSource(&dataSource, source)) staleData |= StaleData::Scenegraph;
     }
 
     ////////////////////////////////////////////////////////////////

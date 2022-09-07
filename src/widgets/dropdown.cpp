@@ -79,20 +79,22 @@ namespace floah
 
     void Dropdown::setItemsDataSource(IListDataSource* source)
     {
-        if (source == itemsDataSource) return;
-        if (itemsDataSource) itemsDataSource->removeDataListener(*this);
-        itemsDataSource = source;
-        if (itemsDataSource) itemsDataSource->addDataListener(*this);
-        staleData |= StaleData::Scenegraph;
+        if (replaceDataSource(&itemsDataSource, source))
+        {
+            staleData |= StaleData::Geometry | StaleData::Scenegraph;
+            state.isValueMeshState = true;
+            state.isItemsMeshStale = true;
+        }
     }
 
     void Dropdown::setIndexDataSource(IIntegralValueDataSource* source)
     {
-        if (source == indexDataSource) return;
-        if (indexDataSource) indexDataSource->removeDataListener(*this);
-        indexDataSource = source;
-        if (indexDataSource) indexDataSource->addDataListener(*this);
-        staleData |= StaleData::Scenegraph;
+        if (replaceDataSource(&indexDataSource, source))
+        {
+            staleData |= StaleData::Geometry | StaleData::Scenegraph;
+            state.isValueMeshState = true;
+            state.isItemsMeshStale = true;
+        }
     }
 
     ////////////////////////////////////////////////////////////////
