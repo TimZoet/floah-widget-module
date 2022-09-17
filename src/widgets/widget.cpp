@@ -89,4 +89,6 @@ namespace floah
 
     int32_t Widget::getInputLayer() const noexcept { return layer ? layer->depth : 0; }
 
+    math::int2 Widget::getInputOffset() const noexcept { return panel->getInputOffset(); }
+
 }  // namespace floah

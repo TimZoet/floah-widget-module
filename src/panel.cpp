@@ -44,6 +44,10 @@ namespace floah
 
     const Stylesheet* Panel::getStylesheet() const noexcept { return stylesheet; }
 
+    sol::Node* Panel::getPanelNode() noexcept { return nullptr; }
+
+    const sol::Node* Panel::getPanelNode() const noexcept { return nullptr; }
+
     ////////////////////////////////////////////////////////////////
     // Setters.
     ////////////////////////////////////////////////////////////////
@@ -134,7 +138,7 @@ namespace floah
         }
     }
 
-    void Panel::generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap) const
+    void Panel::generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap)
     {
         for (const auto& w : widgets | std::views::filter([](const auto& widget) {
                                  return any(widget->getStaleData() & Widget::StaleData::Geometry);
@@ -142,7 +146,7 @@ namespace floah
             w->generateGeometry(meshManager, fontMap);
     }
 
-    void Panel::generateScenegraph(IScenegraphGenerator& generator) const
+    void Panel::generateScenegraph(IScenegraphGenerator& generator)
     {
         for (const auto& w : widgets | std::views::filter([](const auto& widget) {
                                  return any(widget->getStaleData() & Widget::StaleData::Scenegraph);
@@ -154,12 +158,12 @@ namespace floah
     // Input.
     ////////////////////////////////////////////////////////////////
 
-    bool Panel::intersect(const int32_t x, const int32_t y) const noexcept
+    bool Panel::intersect(const math::int2 point) const noexcept
     {
         const auto offset = math::int2(layout->getOffset().getWidth().get(), layout->getOffset().getHeight().get());
         const auto size   = math::int2(layout->getSize().getWidth().get(), layout->getSize().getHeight().get());
         const math::AABB aabb(offset, size);
-        return inside(math::int2(x, y), aabb);
+        return inside(point, aabb);
     }
 
 }  // namespace floah

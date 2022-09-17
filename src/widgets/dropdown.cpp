@@ -243,37 +243,37 @@ namespace floah
             // TODO: If math::float3 were directly constructible from
             // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
             // this could be a lot prettier:
-            nodes.root = &generator.createWidgetNode();
+            nodes.root = &generator.createWidgetNode(panel->getPanelNode());
 
             auto& widgetMtlNode = nodes.root->addChild(std::make_unique<sol::ForwardMaterialNode>());
             widgetMtlNode.setMaterial(getWidgetMaterial());
 
             auto& textMtlNode = generator.createTextMaterialNode(*nodes.root, *getTextMaterial());
 
-            auto& widgetTansformNode = generator.createTransformNode(
+            auto& widgetTansformNode = generator.createWidgetTransformNode(
               widgetMtlNode,
               math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
             widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.box));
             nodes.highlight =
               &widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.highlight));
 
-            auto& valueTransformNode = generator.createTransformNode(
+            auto& valueTransformNode = generator.createWidgetTransformNode(
               textMtlNode, math::float3(blocks.box->bounds.x0, blocks.box->bounds.y0, getInputLayer()));
             nodes.value = &valueTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.value));
 
-            auto& labelTransformNode = generator.createTransformNode(
+            auto& labelTransformNode = generator.createWidgetTransformNode(
               textMtlNode, math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer()));
             labelTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.label));
 
             nodes.widgetItems = &widgetMtlNode.addChild(std::make_unique<sol::Node>());
             auto& backTansformNode =
-              generator.createTransformNode(*nodes.widgetItems,
+              generator.createWidgetTransformNode(*nodes.widgetItems,
                                             math::float3(static_cast<float>(blocks.items->bounds.center()[0]),
                                                          static_cast<float>(blocks.items->bounds.center()[1]),
                                                          static_cast<float>(getInputLayer()) - 0.2f));
             backTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.itemsBack));
 
-            nodes.itemsHighlightTransform = &generator.createTransformNode(*nodes.widgetItems, math::float3(0));
+            nodes.itemsHighlightTransform = &generator.createWidgetTransformNode(*nodes.widgetItems, math::float3(0));
             nodes.itemsHighlightTransform->getAsNode().addChild(
               std::make_unique<sol::MeshNode>(*meshes.itemsHighlight));
 
@@ -281,11 +281,11 @@ namespace floah
             const auto h    = static_cast<float>(blocks.items->bounds.height()) / static_cast<float>(getItemsMax());
             for (size_t i = 0; i < getItemsMax(); i++)
             {
-                auto& trans = generator.createTransformNode(
+                auto& trans = generator.createWidgetTransformNode(
                   *nodes.textItems,
                   math::float3(static_cast<float>(blocks.items->bounds.x0),
                                static_cast<float>(blocks.items->bounds.y0) + static_cast<float>(i) * h,
-                               static_cast<float>(getInputLayer())));
+                               static_cast<float>(getInputLayer() + 1)));
 
                 if (i < meshes.items.size())
                     trans.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.items[i]));
@@ -295,14 +295,15 @@ namespace floah
         }
         else
         {
-            // TODO: Update nodes if they already exist.
             nodes.value->setMesh(meshes.value);
 
             size_t i = 0;
-            for (auto& trans : nodes.textItems->getChildren())
+            for (auto& child : nodes.textItems->getChildren())
             {
-                static_cast<sol::MeshNode&>(*trans->getChildren()[0])
-                  .setMesh(i < meshes.items.size() ? meshes.items[i] : nullptr);
+                auto& transformNode = dynamic_cast<ITransformNode&>(*child);
+                auto& meshNode      = dynamic_cast<sol::MeshNode&>(*transformNode.getAsNode().getChildren()[0]);
+                transformNode.setZ(static_cast<float>(getInputLayer() + 1));
+                meshNode.setMesh(i < meshes.items.size() ? meshes.items[i] : nullptr);
                 i++;
             }
         }
@@ -348,7 +349,7 @@ namespace floah
     // Input.
     ////////////////////////////////////////////////////////////////
 
-    bool Dropdown::intersect(const int32_t x, const int32_t y) const noexcept
+    bool Dropdown::intersect(const math::int2 point) const noexcept
     {
         if (state.opened)
         {
@@ -356,14 +357,14 @@ namespace floah
             const auto       lower = math::int2{blocks.items->bounds.x0, blocks.items->bounds.y0};
             const auto       upper = math::int2{blocks.items->bounds.x1, blocks.items->bounds.y1};
             const math::AABB aabb(lower, upper);
-            if (inside(math::int2(x, y), aabb)) return true;
+            if (inside(point, aabb)) return true;
         }
 
         // Intersect with value box.
         const auto       lower = math::int2{blocks.box->bounds.x0, blocks.box->bounds.y0};
         const auto       upper = math::int2{blocks.box->bounds.x1, blocks.box->bounds.y1};
         const math::AABB aabb(lower, upper);
-        return inside(math::int2(x, y), aabb);
+        return inside(point, aabb);
     }
 
     void Dropdown::onMouseEnter()

@@ -31,6 +31,20 @@ namespace floah
     class Panel : public InputElement
     {
     public:
+        static constexpr char material_panel[] = "material.panel";
+
+        ////////////////////////////////////////////////////////////////
+        // Types.
+        ////////////////////////////////////////////////////////////////
+
+        enum class StaleData
+        {
+            Layout     = 1,
+            Geometry   = 2,
+            Scenegraph = 4,
+            All        = Layout | Geometry | Scenegraph
+        };
+
         ////////////////////////////////////////////////////////////////
         // Constructors.
         ////////////////////////////////////////////////////////////////
@@ -39,15 +53,15 @@ namespace floah
 
         explicit Panel(InputContext& context);
 
-        Panel(const Panel&) = delete;
+        Panel(const Panel&) = default;
 
-        Panel(Panel&&) noexcept = delete;
+        Panel(Panel&&) noexcept = default;
 
         ~Panel() noexcept override;
 
-        Panel& operator=(const Panel&) = delete;
+        Panel& operator=(const Panel&) = default;
 
-        Panel& operator=(Panel&&) noexcept = delete;
+        Panel& operator=(Panel&&) noexcept = default;
 
         ////////////////////////////////////////////////////////////////
         // Getters.
@@ -88,6 +102,10 @@ namespace floah
          * \return Stylesheet or nullptr.
          */
         [[nodiscard]] const Stylesheet* getStylesheet() const noexcept;
+
+        [[nodiscard]] virtual sol::Node* getPanelNode() noexcept;
+
+        [[nodiscard]] virtual const sol::Node* getPanelNode() const noexcept;
 
         ////////////////////////////////////////////////////////////////
         // Setters.
@@ -170,22 +188,22 @@ namespace floah
         /**
          * \brief Generate the panel layout.
          */
-        void generatePanelLayout();
+        virtual void generatePanelLayout();
 
         /**
          * \brief Generate the widget layouts.
          */
-        void generateWidgetLayouts();
+        virtual void generateWidgetLayouts();
 
         /**
          * \brief Generate the geometry.
          */
-        void generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap) const;
+        virtual void generateGeometry(sol::MeshManager& meshManager, FontMap& fontMap);
 
         /**
          * \brief Generate the scenegraph.
          */
-        void generateScenegraph(IScenegraphGenerator& generator) const;
+        virtual void generateScenegraph(IScenegraphGenerator& generator);
 
         ////////////////////////////////////////////////////////////////
         // Input.
@@ -194,10 +212,28 @@ namespace floah
         // TODO: Support sorting of panels by implementing this method (and whatever else is needed for that).
         // [[nodiscard]] int32_t getInputLayer() const noexcept override;
 
-        [[nodiscard]] bool intersect(int32_t x, int32_t y) const noexcept override;
+        [[nodiscard]] bool intersect(math::int2 point) const noexcept override;
 
     private:
         void addWidgetImpl(WidgetPtr widget, Layer* layer);
+
+    protected:
+        ////////////////////////////////////////////////////////////////
+        // Stylesheet getter.
+        ////////////////////////////////////////////////////////////////
+        
+        template<typename T, typename N>
+        [[nodiscard]] std::optional<T> getStylesheetProperty(N name) const
+        {
+            // Try to retrieve property from stylesheet.
+            if (stylesheet)
+            {
+                const auto opt = stylesheet->get<T>(name);
+                if (opt) return *opt;
+            }
+
+            return {};
+        }
 
         ////////////////////////////////////////////////////////////////
         // Member variables.
@@ -232,5 +268,7 @@ namespace floah
          * \brief Panel stylesheet.
          */
         Stylesheet* stylesheet = nullptr;
+
+        StaleData staleData = StaleData::All;
     };
 }  // namespace floah

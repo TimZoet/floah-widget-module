@@ -114,7 +114,7 @@ namespace floah
         // Input.
         ////////////////////////////////////////////////////////////////
 
-        [[nodiscard]] bool intersect(int32_t x, int32_t y) const noexcept override;
+        [[nodiscard]] bool intersect(math::int2 point) const noexcept override;
 
         void onMouseEnter() override;
 

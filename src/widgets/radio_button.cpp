@@ -162,7 +162,7 @@ namespace floah
 
         if (!nodes.root)
         {
-            nodes.root = &generator.createWidgetNode();
+            nodes.root = &generator.createWidgetNode(panel->getPanelNode());
 
             auto& widgetMtlNode = nodes.root->addChild(std::make_unique<sol::ForwardMaterialNode>());
             widgetMtlNode.setMaterial(getWidgetMaterial());
@@ -173,7 +173,7 @@ namespace floah
             // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
             // this could be a lot prettier:
 
-            auto& widgetTansformNode = generator.createTransformNode(
+            auto& widgetTansformNode = generator.createWidgetTransformNode(
               widgetMtlNode,
               math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
             widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.box));
@@ -182,7 +182,7 @@ namespace floah
             nodes.checkmark =
               &widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
 
-            auto& labelTransformNode = generator.createTransformNode(
+            auto& labelTransformNode = generator.createWidgetTransformNode(
               textMtlNode, math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer()));
             labelTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.label));
         }
@@ -210,13 +210,13 @@ namespace floah
     // Input.
     ////////////////////////////////////////////////////////////////
 
-    bool RadioButton::intersect(const int32_t x, const int32_t y) const noexcept
+    bool RadioButton::intersect(const math::int2 point) const noexcept
     {
         // Intersect with checkmark box.
         const auto       lower = math::int2{blocks.box->bounds.x0, blocks.box->bounds.y0};
         const auto       upper = math::int2{blocks.box->bounds.x1, blocks.box->bounds.y1};
         const math::AABB aabb(lower, upper);
-        return inside(math::int2(x, y), aabb);
+        return inside(point, aabb);
     }
 
     void RadioButton::onMouseEnter()
@@ -248,10 +248,7 @@ namespace floah
     // DataListener.
     ////////////////////////////////////////////////////////////////
 
-    void RadioButton::onDataSourceUpdate(DataSource&)
-    {
-        staleData |= StaleData::Scenegraph;
-    }
+    void RadioButton::onDataSourceUpdate(DataSource&) { staleData |= StaleData::Scenegraph; }
 
     ////////////////////////////////////////////////////////////////
     // ...
@@ -263,17 +260,11 @@ namespace floah
 
         // Set value to true for button that was clicked and false for all others.
 
-        if (dataSource)
-        {
-            dataSource->set(this == &setButton);
-        }
+        if (dataSource) { dataSource->set(this == &setButton); }
 
         for (auto* b : siblings)
         {
-            if (b->dataSource)
-            {
-                b->dataSource->set(b == &setButton);
-            }
+            if (b->dataSource) { b->dataSource->set(b == &setButton); }
         }
     }
 

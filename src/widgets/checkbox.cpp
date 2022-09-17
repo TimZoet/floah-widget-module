@@ -150,7 +150,7 @@ namespace floah
 
         if (!nodes.root)
         {
-            nodes.root = &generator.createWidgetNode();
+            nodes.root = &generator.createWidgetNode(panel->getPanelNode());
 
             auto& widgetMtlNode = nodes.root->addChild(std::make_unique<sol::ForwardMaterialNode>());
             widgetMtlNode.setMaterial(getWidgetMaterial());
@@ -161,7 +161,7 @@ namespace floah
             // std::array<std::convertible_to<float> T, 2> and std::convertible_to<float>,
             // this could be a lot prettier:
 
-            auto& widgetTansformNode = generator.createTransformNode(
+            auto& widgetTansformNode = generator.createWidgetTransformNode(
               widgetMtlNode,
               math::float3(blocks.box->bounds.center()[0], blocks.box->bounds.center()[1], getInputLayer()));
             widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.box));
@@ -170,7 +170,7 @@ namespace floah
             nodes.checkmark =
               &widgetTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.checkmark));
 
-            auto& labelTransformNode = generator.createTransformNode(
+            auto& labelTransformNode = generator.createWidgetTransformNode(
               textMtlNode, math::float3(blocks.label->bounds.x0, blocks.label->bounds.y0, getInputLayer()));
             labelTransformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.label));
         }
@@ -198,13 +198,13 @@ namespace floah
     // Input.
     ////////////////////////////////////////////////////////////////
 
-    bool Checkbox::intersect(const int32_t x, const int32_t y) const noexcept
+    bool Checkbox::intersect(const math::int2 point) const noexcept
     {
         // Intersect with checkmark box.
         const auto       lower = math::int2{blocks.box->bounds.x0, blocks.box->bounds.y0};
         const auto       upper = math::int2{blocks.box->bounds.x1, blocks.box->bounds.y1};
         const math::AABB aabb(lower, upper);
-        return inside(math::int2(x, y), aabb);
+        return inside(point, aabb);
     }
 
     void Checkbox::onMouseEnter()

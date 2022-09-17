@@ -196,6 +196,8 @@ namespace floah
 
         [[nodiscard]] int32_t getInputLayer() const noexcept override;
 
+        [[nodiscard]] math::int2 getInputOffset() const noexcept override;
+
     protected:
         ////////////////////////////////////////////////////////////////
         // Stylesheet getter.
