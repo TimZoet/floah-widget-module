@@ -207,26 +207,28 @@ namespace floah
         return inside(point, aabb);
     }
 
-    void Checkbox::onMouseEnter()
+    InputContext::MouseEnterResult Checkbox::onMouseEnter(const InputContext::MouseEnterEvent&)
     {
         state.entered = true;
         staleData |= StaleData::Scenegraph;
+        return {};
     }
 
-    void Checkbox::onMouseExit()
+    InputContext::MouseExitResult Checkbox::onMouseExit(const InputContext::MouseExitEvent&)
     {
         state.entered = false;
         staleData |= StaleData::Scenegraph;
+        return {};
     }
 
-    InputContext::MouseClickResult Checkbox::onMouseClick(const InputContext::MouseClick click)
+    InputContext::MouseClickResult Checkbox::onMouseClick(const InputContext::MouseClickEvent& click)
     {
         if (click.button == InputContext::MouseButton::Left && click.action == InputContext::MouseAction::Press)
         {
             if (dataSource) dataSource->toggle();
         }
 
-        return InputContext::MouseClickResult{};
+        return {};
     }
 
     ////////////////////////////////////////////////////////////////

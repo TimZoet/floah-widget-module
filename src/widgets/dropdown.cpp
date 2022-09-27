@@ -268,9 +268,9 @@ namespace floah
             nodes.widgetItems = &widgetMtlNode.addChild(std::make_unique<sol::Node>());
             auto& backTansformNode =
               generator.createWidgetTransformNode(*nodes.widgetItems,
-                                            math::float3(static_cast<float>(blocks.items->bounds.center()[0]),
-                                                         static_cast<float>(blocks.items->bounds.center()[1]),
-                                                         static_cast<float>(getInputLayer()) - 0.2f));
+                                                  math::float3(static_cast<float>(blocks.items->bounds.center()[0]),
+                                                               static_cast<float>(blocks.items->bounds.center()[1]),
+                                                               static_cast<float>(getInputLayer()) - 0.2f));
             backTansformNode.getAsNode().addChild(std::make_unique<sol::MeshNode>(*meshes.itemsBack));
 
             nodes.itemsHighlightTransform = &generator.createWidgetTransformNode(*nodes.widgetItems, math::float3(0));
@@ -367,19 +367,21 @@ namespace floah
         return inside(point, aabb);
     }
 
-    void Dropdown::onMouseEnter()
+    InputContext::MouseEnterResult Dropdown::onMouseEnter(const InputContext::MouseEnterEvent&)
     {
         state.entered = true;
         staleData |= StaleData::Scenegraph;
+        return {};
     }
 
-    void Dropdown::onMouseExit()
+    InputContext::MouseExitResult Dropdown::onMouseExit(const InputContext::MouseExitEvent&)
     {
         state.entered = false;
         staleData |= StaleData::Scenegraph;
+        return {};
     }
 
-    InputContext::MouseClickResult Dropdown::onMouseClick(const InputContext::MouseClick click)
+    InputContext::MouseClickResult Dropdown::onMouseClick(const InputContext::MouseClickEvent& click)
     {
         if (click.button == InputContext::MouseButton::Left && click.action == InputContext::MouseAction::Press)
         {
@@ -389,22 +391,21 @@ namespace floah
                 staleData |= StaleData::Scenegraph;
 
                 // Update index (if at all possible).
-                if (!indexDataSource || !itemsDataSource || state.hightlight == -1)
-                    return InputContext::MouseClickResult{.claim = false};
+                if (!indexDataSource || !itemsDataSource || state.hightlight == -1) return {.claim = false};
                 indexDataSource->set(state.hightlight + state.scroll);
 
-                return InputContext::MouseClickResult{.claim = false};
+                return {.claim = false};
             }
 
             state.opened = true;
             staleData |= StaleData::Geometry | StaleData::Scenegraph;
-            return InputContext::MouseClickResult{.claim = true};
+            return {.claim = true};
         }
 
-        return InputContext::MouseClickResult{.claim = state.opened};
+        return {.claim = state.opened};
     }
 
-    InputContext::MouseMoveResult Dropdown::onMouseMove(const InputContext::MouseMove move)
+    InputContext::MouseMoveResult Dropdown::onMouseMove(const InputContext::MouseMoveEvent& move)
     {
         staleData |= StaleData::Scenegraph;
 
@@ -429,13 +430,13 @@ namespace floah
             }
         }
 
-        return InputContext::MouseMoveResult{};
+        return {};
     }
 
-    InputContext::MouseScrollResult Dropdown::onMouseScroll(const InputContext::MouseScroll scroll)
+    InputContext::MouseScrollResult Dropdown::onMouseScroll(const InputContext::MouseScrollEvent& scroll)
     {
         // Only scroll when opened.
-        if (!state.opened) return InputContext::MouseScrollResult{};
+        if (!state.opened) return {};
 
         const auto oldScroll = state.scroll;
         state.scroll -= scroll.scroll.y;
@@ -447,7 +448,7 @@ namespace floah
             state.isItemsMeshStale = true;
         }
 
-        return InputContext::MouseScrollResult{};
+        return {};
     }
 
     ////////////////////////////////////////////////////////////////
@@ -575,10 +576,7 @@ namespace floah
     {
         const auto max = getItemsMax(), size = itemsDataSource ? itemsDataSource->getSize() : 0;
         if (size <= max) { state.scroll = 0; }
-        else
-        {
-            state.scroll = math::clamp(state.scroll, 0, static_cast<int32_t>(size - max));
-        }
+        else { state.scroll = math::clamp(state.scroll, 0, static_cast<int32_t>(size - max)); }
     }
 
 }  // namespace floah

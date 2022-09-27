@@ -219,19 +219,21 @@ namespace floah
         return inside(point, aabb);
     }
 
-    void RadioButton::onMouseEnter()
+    InputContext::MouseEnterResult RadioButton::onMouseEnter(const InputContext::MouseEnterEvent&)
     {
         state.entered = true;
         staleData |= StaleData::Scenegraph;
+        return {};
     }
 
-    void RadioButton::onMouseExit()
+    InputContext::MouseExitResult RadioButton::onMouseExit(const InputContext::MouseExitEvent&)
     {
         state.entered = false;
         staleData |= StaleData::Scenegraph;
+        return {};
     }
 
-    InputContext::MouseClickResult RadioButton::onMouseClick(const InputContext::MouseClick click)
+    InputContext::MouseClickResult RadioButton::onMouseClick(const InputContext::MouseClickEvent& click)
     {
         if (click.button == InputContext::MouseButton::Left && click.action == InputContext::MouseAction::Press)
         {
@@ -241,7 +243,7 @@ namespace floah
                 setMain(*this);
         }
 
-        return InputContext::MouseClickResult{};
+        return {};
     }
 
     ////////////////////////////////////////////////////////////////

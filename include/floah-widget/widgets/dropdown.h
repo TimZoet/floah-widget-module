@@ -114,15 +114,16 @@ namespace floah
 
         [[nodiscard]] bool intersect(math::int2 point) const noexcept override;
 
-        void onMouseEnter() override;
+        [[nodiscard]] InputContext::MouseEnterResult onMouseEnter(const InputContext::MouseEnterEvent& enter) override;
 
-        void onMouseExit() override;
+        [[nodiscard]] InputContext::MouseExitResult onMouseExit(const InputContext::MouseExitEvent& exit) override;
 
-        [[nodiscard]] InputContext::MouseClickResult onMouseClick(InputContext::MouseClick click) override;
+        [[nodiscard]] InputContext::MouseClickResult onMouseClick(const InputContext::MouseClickEvent& click) override;
 
-        [[nodiscard]] InputContext::MouseMoveResult onMouseMove(InputContext::MouseMove move) override;
+        [[nodiscard]] InputContext::MouseMoveResult onMouseMove(const InputContext::MouseMoveEvent& move) override;
 
-        [[nodiscard]] InputContext::MouseScrollResult onMouseScroll(InputContext::MouseScroll scroll) override;
+        [[nodiscard]] InputContext::MouseScrollResult
+          onMouseScroll(const InputContext::MouseScrollEvent& scroll) override;
 
         ////////////////////////////////////////////////////////////////
         // DataListener.
